@@ -24,6 +24,8 @@ app.use(express.urlencoded({ extended: true})); //for parsing data to url format
 app.use(methodOverride("_method"));// for using put and delete methods
 app.engine("ejs", ejsMate); //usign ejs-Mate as the template engine
 app.use(express.static(path.join(__dirname, "/public")));
+// Linux (Render) is case-sensitive: map /css/* to existing public/CSS/*
+app.use("/css", express.static(path.join(__dirname, "public", "CSS")));
 
 //session store
 const store = MongoStore.create({
