@@ -5,6 +5,7 @@ const express = require("express");//importing express
 const app = express();//importing express
 const mongoose = require("mongoose");// importing mongoose
 const path = require("path");//path module
+const compression = require("compression");
 const methodOverride = require("method-override");// importinf method-override
 const ejsMate = require("ejs-mate");//importing ejs-mate it help to create layouts and partials of ejs template
 const ExpressError = require("./utils/ExpressError.js"); //import ExpressError class to handle errors
@@ -20,10 +21,15 @@ const dbUrl = process.env.ATLASDB_URL; //database url
 
 app.set("view engine", "ejs");//set the view engine tp ejs
 app.set("views", path.join(__dirname, "views")); //set the views directory
+app.use(compression());
 app.use(express.urlencoded({ extended: true})); //for parsing data to url formate
 app.use(methodOverride("_method"));// for using put and delete methods
 app.engine("ejs", ejsMate); //usign ejs-Mate as the template engine
-app.use(express.static(path.join(__dirname, "/public")));
+app.use(
+    express.static(path.join(__dirname, "/public"), {
+        maxAge: process.env.NODE_ENV === "production" ? "7d" : 0,
+    })
+);
 // Linux (Render) is case-sensitive: map /css/* to existing public/CSS/*
 app.use("/css", express.static(path.join(__dirname, "public", "CSS")));
 
@@ -74,12 +80,15 @@ app.use((req, res, next) => {
 });
 
 //importing the router
+
+// const homeRouter = require("./routes/home.js");
+// app.use("/", homeRouter);
 const listingRouter = require("./routes/listing.js");
-app.use("/listings", listingRouter);
+app.use("/", listingRouter);
 
 //importing the review router
 const reviewRouter = require("./routes/review.js");
-app.use("/listings/:id/reviews", reviewRouter);
+app.use("/:id/reviews", reviewRouter);
 
 //importing the user routers
 // importing
