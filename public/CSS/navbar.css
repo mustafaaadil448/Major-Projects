@@ -1,19 +1,33 @@
 .search-btn{
-        background: #fe424d;
-        color: white;
-        border-radius: 25px;
-        padding: 0 1rem 0 1rem;
+    background: #fe424d;
+    color: white;
+    border-radius: 25px;
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+}
+.search-btn:hover{
+    background: #fe424d;
+    color: #fff;
+}
+.search-btn i{
+    display: inline;
+    margin-right: 0.5rem;
+}
+.search-input{
+    border-radius: 25px;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    width: 100%;
+}
+
+/* Make search bar usable inside collapsed navbar */
+.search-form{
+    width: 100%;
+}
+@media (min-width: 768px) {
+    .search-form{
+        width: auto;
+        min-width: 320px;
+        max-width: 520px;
     }
-    .btn-search:hover{
-        background: #fe424d;
-        color: #fff;
-    }
-    .search-btn i{
-        display: inline;
-        margin-right: 0.5rem;
-    }
-    .search-input{
-        border-radius: 25px;
-        padding: 0.5rem 3rem 0.5rem 3rem;
-        font-size: 1rem;
-    }
+}

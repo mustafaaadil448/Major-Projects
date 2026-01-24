@@ -11,7 +11,8 @@ const reviewController = require("../controllers/reviews.js");
 router.use((req, res, next) => {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-        return next("router");
+        req.flash("error", "Listing not found!");
+        return res.redirect("/");
     }
     next();
 });

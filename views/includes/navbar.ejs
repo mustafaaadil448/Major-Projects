@@ -5,26 +5,26 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-                <a class="nav-link" href="/">Explore</a>
+            <div class="d-flex flex-column flex-md-row align-items-md-center gap-2 w-100">
+                <div class="navbar-nav">
+                    <a class="nav-link" href="/">Explore</a>
+                </div>
 
-            </div>
-            <div class="navbar-nav ms-auto">
-                <form class="d-flex" role="search">
-                    <input class="form-control me-2 search-input" type="search" placeholder="Search destinations" />
+                <form class="d-flex flex-column flex-sm-row gap-2 ms-md-auto search-form" role="search">
+                    <input class="form-control search-input" type="search" placeholder="Search destinations" />
                     <button class="btn search-btn" type="submit"><i class="fa-solid fa-magnifying-glass"></i>Search</button>
                 </form>
-            </div>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/new">Airbnb Your home</a>
-                <% if (!currentUser) { %>
-                    <a class="nav-link" href="/signup"><b>Sign up</b></a>
-                    <a class="nav-link" href="/login"><b>Login</b></a>
-                    <% } %>
-                        <%if(currentUser) { %>
-                            <a class="nav-link" href="/logout"><b>Log out</b></a>
 
-                            <% } %>
+                <div class="navbar-nav">
+                    <a class="nav-link" href="/new">Airbnb Your home</a>
+                    <% if (!currentUser) { %>
+                        <a class="nav-link" href="/signup"><b>Sign up</b></a>
+                        <a class="nav-link" href="/login"><b>Login</b></a>
+                    <% } %>
+                    <% if (currentUser) { %>
+                        <a class="nav-link" href="/logout"><b>Log out</b></a>
+                    <% } %>
+                </div>
             </div>
         </div>
     </div>

@@ -5,11 +5,11 @@
     const listing = <%- JSON.stringify(listing) %>;
 </script>
 <div class="row mt-3">
-    <div class="col-8 offset-3">
+    <div class="col-12 col-md-8 offset-md-2">
         <h3><%= listing.title %></h3>
     </div>
 
-    <div class="card col-6 offset-3 show card listing-card">
+    <div class="card col-12 col-md-8 offset-md-2 show card listing-card">
         <% const imgUrl = listing.image?.url ? listing.image.url.replace("/upload", "/upload/f_auto,q_auto,w_1200") : ""; %>
         <img src="<%= imgUrl %>" class="card-img-top show-img" alt="listing_image">
         <div class="card-body">
@@ -28,15 +28,15 @@
 
     <!-- ✅ Edit/Delete buttons visible only to listing owner -->
     <% if (currentUser && listing.owner && currentUser._id.toString() === listing.owner._id.toString()) { %>
-        <div class="btns">
-            <a href="/<%= listing._id %>/edit" class="btn btn-dark col-1 offset-3 edit-btn">Edit</a>
+        <div class="btns gap-2 flex-wrap col-12 col-md-8 offset-md-2">
+            <a href="/<%= listing._id %>/edit" class="btn btn-dark edit-btn">Edit</a>
             <form method="POST" action="/<%= listing._id %>?_method=DELETE" class="d-inline">
-                <button class="btn btn-dark offset-5">Delete</button>
+                <button class="btn btn-dark">Delete</button>
             </form>
         </div>
     <% } %>
 
-    <div class="col-8 offset-3 mb-3">
+    <div class="col-12 col-md-8 offset-md-2 mb-3">
         <!-- ✅ Review form only for logged-in users -->
         <% if (currentUser) { %>
             <hr />
@@ -101,7 +101,7 @@
         <% } %>
     </div>
 
-    <div class="col-8 offset-3 mb-3">
+    <div class="col-12 col-md-8 offset-md-2 mb-3">
         <h3>Where you'll be</h3>
         <div id="map"></div>
     </div>
