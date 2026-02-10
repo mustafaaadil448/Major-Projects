@@ -80,35 +80,20 @@
             }
         }
 
-        /* Mobile: horizontal scroller */
+        /* Mobile: vertical list (no horizontal scroll) */
         @media (max-width: 767.98px) {
             .listing-row {
-                display: flex;
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                scroll-snap-type: x mandatory;
-                scroll-padding-left: 1rem;
-                padding-bottom: 0.75rem;
-                padding-left: 1rem;
-                padding-right: 1rem;
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                overflow-x: hidden;
+                padding: 0 1rem 0.75rem;
                 margin-left: 0;
                 margin-right: 0;
             }
 
-            /* Hide scrollbar (mobile polish) */
-            .listing-row::-webkit-scrollbar {
-                display: none;
-            }
-            .listing-row {
-                scrollbar-width: none;
-            }
-
             .listing-row .listing-link {
-                flex: 0 0 auto;
-                width: calc(100vw - 2rem);
-                scroll-snap-align: start;
-                scroll-snap-stop: always;
+                width: 100%;
             }
 
             .listing-row .listing-card {
