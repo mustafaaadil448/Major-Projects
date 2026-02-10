@@ -17,6 +17,9 @@
 
                 <div class="navbar-nav">
                     <a class="nav-link" href="/new">Airbnb Your home</a>
+                    <% if (currentUser && currentUser.role === 'admin') { %>
+                        <a class="nav-link" href="/admin"><b>Admin</b></a>
+                    <% } %>
                     <% if (!currentUser) { %>
                         <a class="nav-link" href="/signup"><b>Sign up</b></a>
                         <a class="nav-link" href="/login"><b>Login</b></a>

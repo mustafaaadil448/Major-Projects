@@ -1,0 +1,70 @@
+<% layout("../layouts/boilerplate.ejs") %>
+
+<div class="py-4">
+  <h1 class="h3 mb-4">Admin Dashboard</h1>
+
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Listings</h5>
+          <p class="card-text display-6"><%= stats.totalListings %></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Users</h5>
+          <p class="card-text display-6"><%= stats.totalUsers %></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Reviews</h5>
+          <p class="card-text display-6"><%= stats.totalReviews %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Recent Listings</h5>
+          <ul class="list-group list-group-flush">
+            <% recentListings.forEach(l => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                  <a href="/<%= l._id %>"><%= l.title %></a>
+                  <small class="text-muted"> &middot; <%= l.location %>, <%= l.country %></small>
+                </span>
+                <% if (l.owner) { %>
+                  <span class="badge bg-secondary">by <%= l.owner.username %></span>
+                <% } %>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Recent Users</h5>
+          <ul class="list-group list-group-flush">
+            <% recentUsers.forEach(u => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><%= u.username %></span>
+                <span class="badge bg-light text-dark"><%= u.email %></span>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

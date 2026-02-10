@@ -93,6 +93,10 @@ app.use("/:id/reviews", reviewRouter);
 const userRouter = require("./routes/user.js");
 app.use("/", userRouter);
 
+// Admin routes
+const adminRouter = require("./routes/admin.js");
+app.use("/", adminRouter);
+
 
 main().then(() => {
     console.log("Connected to DB");
@@ -101,6 +105,14 @@ main().then(() => {
 });
 async function main() {
     await mongoose.connect(dbUrl);// connect to the database
+    // Optional: promote a specific user to admin via env ADMIN_USERNAME
+    if (process.env.ADMIN_USERNAME) {
+        try {
+            await User.updateOne({ username: process.env.ADMIN_USERNAME }, { role: "admin" });
+        } catch (e) {
+            console.log("ADMIN bootstrap failed:", e.message);
+        }
+    }
 }
 
 //Error handling middleware
