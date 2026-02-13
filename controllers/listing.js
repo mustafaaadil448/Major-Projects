@@ -3,12 +3,22 @@ const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding'); // ✅ sp
 const mapToken = process.env.MAP_TOKEN;
 const geocodingClient = mbxGeocoding({ accessToken: mapToken }); // ✅ now matches
 
+function escapeRegex(str) {
+    return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // Show all listings
 module.exports.index = async (req, res) => {
-    const allListings = await Listing.find()
-        .select("title price image")
-        .lean();
-    res.render("listings/index.ejs", { allListings });
+    const q = (req.query.q || "").toString().trim();
+
+    const filter = { isActive: { $ne: false } };
+    if (q) {
+        const rx = new RegExp(escapeRegex(q), "i");
+        filter.$or = [{ title: rx }, { location: rx }, { country: rx }];
+    }
+
+    const allListings = await Listing.find(filter).select("title price image").lean();
+    res.render("listings/index.ejs", { allListings, q });
 };
 
 // Render New Form
@@ -19,6 +29,9 @@ module.exports.renderNewForm = (req, res) => {
 // Show single listing
 module.exports.showListing = async (req, res) => {
     let { id } = req.params;
+    // Track views for admin analytics
+    await Listing.findByIdAndUpdate(id, { $inc: { viewCount: 1 } }).catch(() => {});
+
     const listing = await Listing.findById(id)
         .populate({
             path: "reviews",

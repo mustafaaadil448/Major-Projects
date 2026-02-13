@@ -1,0 +1,186 @@
+<% layout('layouts/boilerplate') %>
+
+<link rel="stylesheet" href="/CSS/payment.css" />
+
+<div class="payment-page">
+  <div class="row justify-content-center g-4">
+    <div class="col-12 col-lg-8">
+      <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 payment-header">
+        <div>
+          <h3 class="m-0 payment-title">Payment</h3>
+          <div class="text-muted payment-subtitle">Complete payment to confirm your booking.</div>
+        </div>
+        <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="/bookings">Back</a>
+      </div>
+
+      <div class="card border-0 shadow-sm payment-card">
+        <div class="card-body p-3 p-sm-4">
+          <div class="payment-summary mb-3">
+            <div class="payment-summary-body">
+              <div class="payment-row">
+                <div class="payment-label">Booking ID</div>
+                <div class="payment-value"><%= booking._id %></div>
+              </div>
+              <div class="payment-row">
+                <div class="payment-label">Listing</div>
+                <div class="payment-value"><%= booking.listing ? booking.listing.title : '' %></div>
+              </div>
+              <div class="payment-row">
+                <div class="payment-label">Dates</div>
+                <div class="payment-value"><%= new Date(booking.checkInDate).toLocaleDateString() %> → <%= new Date(booking.checkOutDate).toLocaleDateString() %> (<%= booking.nights %> nights)</div>
+              </div>
+
+              <div class="payment-divider"></div>
+
+              <div class="payment-row">
+                <div>Total</div>
+                <div class="payment-value">₹ <%= (booking.totalAmount || 0).toLocaleString('en-IN') %></div>
+              </div>
+              <div class="payment-row">
+                <div>Tax (5%)</div>
+                <div class="payment-value">₹ <%= (booking.taxAmount || 0).toLocaleString('en-IN') %></div>
+              </div>
+            </div>
+
+            <div class="payment-totals">
+              <div class="payment-row mb-0">
+                <div class="fw-semibold">Final</div>
+                <div class="payment-value fw-bold payment-final">₹ <%= (booking.finalAmount || 0).toLocaleString('en-IN') %></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="payment-actions">
+            <button class="btn btn-dark shadow-sm px-4 py-2 d-inline-flex align-items-center gap-2" id="payBtn" type="button">
+              <i class="fa-solid fa-lock"></i>
+              <span>Pay with Razorpay</span>
+            </button>
+
+            <div class="spinner-border d-none" role="status" id="loadingSpinner" aria-label="Loading"></div>
+
+            <div class="text-muted small">Secured checkout powered by Razorpay.</div>
+          </div>
+
+          <div class="text-danger small mt-3 payment-error" id="payError" role="alert"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  const payBtn = document.getElementById('payBtn');
+  const spinner = document.getElementById('loadingSpinner');
+  const payError = document.getElementById('payError');
+  const bookingId = "<%= booking._id %>";
+
+  function showError(msg) {
+    if (!payError) return;
+    payError.style.display = '';
+    payError.className = 'text-danger small mt-3 payment-error';
+    payError.textContent = msg || 'Payment failed. Please try again.';
+  }
+
+  async function createOrder() {
+    const res = await fetch('/api/payment/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ bookingId })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Order create failed');
+    }
+    return data;
+  }
+
+  async function verifyPayment(response) {
+    const payload = {
+      bookingId,
+      razorpay_order_id: response.razorpay_order_id,
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_signature: response.razorpay_signature,
+    };
+
+    const res = await fetch('/api/payment/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Verification failed');
+    }
+    return data;
+  }
+
+  payBtn.addEventListener('click', () => {
+    (async () => {
+      try {
+        payError.style.display = 'none';
+        spinner.classList.remove('d-none');
+        payBtn.disabled = true;
+
+        const { orderId, amount, key } = await createOrder();
+
+        const options = {
+          key,
+          amount,
+          currency: "INR",
+          name: "Wanderlust",
+          description: "Booking Payment",
+          order_id: orderId,
+          prefill: {
+            name: "<%= booking.guestName %>",
+            email: "<%= booking.email %>",
+            contact: "<%= booking.mobile %>",
+          },
+          notes: { bookingId },
+          theme: { color: "#111111" },
+          handler: async function (response) {
+            try {
+              await verifyPayment(response);
+              window.location.href = `/booking-success?bookingId=${bookingId}`;
+            } catch (e) {
+              showError(e?.message || 'Verification failed');
+              window.location.href = `/booking-failed?bookingId=${bookingId}`;
+            }
+          },
+          modal: {
+            ondismiss: async function () {
+              try {
+                await fetch('/payment/failure', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ bookingId })
+                });
+              } catch (e) {}
+              window.location.href = `/booking-failed?bookingId=${bookingId}`;
+            }
+          }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', async function () {
+          try {
+            await fetch('/payment/failure', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ bookingId })
+            });
+          } catch (e) {}
+          window.location.href = `/booking-failed?bookingId=${bookingId}`;
+        });
+
+        spinner.classList.add('d-none');
+        payBtn.disabled = false;
+        rzp.open();
+      } catch (e) {
+        spinner.classList.add('d-none');
+        payBtn.disabled = false;
+        showError(e?.message || 'Payment order not created');
+      }
+    })();
+  });
+</script>

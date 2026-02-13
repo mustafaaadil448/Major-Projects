@@ -1,0 +1,133 @@
+<% layout('layouts/admin') %>
+
+<div class="admin-grid">
+  <div class="admin-card" style="grid-column: span 12;">
+    <div class="admin-card__bd">
+      <div class="admin-section-title">Settings</div>
+      <div class="admin-muted">Environment and operational controls</div>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 12;">
+    <div class="admin-card__bd">
+      <div class="admin-section-title" style="font-size: 14px;">Interface</div>
+      <div class="admin-muted">Personalize admin UI (saved on this device).</div>
+
+      <div class="row g-3 mt-1">
+        <div class="col-12 col-md-6">
+          <div class="admin-card admin-card--solid" style="border-radius: 16px;">
+            <div class="admin-card__bd d-flex align-items-start justify-content-between gap-3">
+              <div>
+                <div class="fw-semibold">Dark mode</div>
+                <div class="admin-muted small">Better contrast in low light.</div>
+              </div>
+              <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="settingDark">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <div class="admin-card admin-card--solid" style="border-radius: 16px;">
+            <div class="admin-card__bd d-flex align-items-start justify-content-between gap-3">
+              <div>
+                <div class="fw-semibold">Compact sidebar</div>
+                <div class="admin-muted small">Collapse sidebar for more space.</div>
+              </div>
+              <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="settingSidebar">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="admin-card admin-card--solid" style="border-radius: 16px;">
+            <div class="admin-card__bd d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div>
+                <div class="fw-semibold">Reset UI preferences</div>
+                <div class="admin-muted small">Clears saved theme + sidebar state.</div>
+              </div>
+              <button class="btn btn-sm btn-outline-secondary" type="button" id="resetUiPrefs">Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 6;">
+    <div class="admin-card__bd">
+      <div class="admin-section-title" style="font-size: 14px;">Security</div>
+      <div class="admin-muted">Admin routes are protected by `isLoggedIn` + `isAdmin`.</div>
+      <div class="admin-muted mt-2">Blocked users are denied access across session and JWT flows.</div>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 6;">
+    <div class="admin-card__bd">
+      <div class="admin-section-title" style="font-size: 14px;">Payments</div>
+      <div class="admin-muted">Refunds use Razorpay API keys from `.env`.</div>
+      <div class="admin-muted mt-2">CSV export available in Payments page.</div>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 12;">
+    <div class="admin-card__bd">
+      <div class="admin-section-title" style="font-size: 14px;">Notes</div>
+      <div class="admin-muted">These settings are device-specific and do not change backend data.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const dark = document.getElementById('settingDark');
+    const sidebar = document.getElementById('settingSidebar');
+    const reset = document.getElementById('resetUiPrefs');
+
+    function get(key) {
+      try { return localStorage.getItem(key); } catch (e) { return null; }
+    }
+    function set(key, val) {
+      try { localStorage.setItem(key, val); } catch (e) {}
+    }
+    function del(key) {
+      try { localStorage.removeItem(key); } catch (e) {}
+    }
+
+    function applyDark(on) {
+      document.body.classList.toggle('admin-dark', !!on);
+      set('admin.dark', on ? '1' : '0');
+      if (dark) dark.checked = !!on;
+    }
+
+    function applySidebarCollapsed(on) {
+      const shell = document.querySelector('.admin-shell');
+      const sb = document.getElementById('adminSidebar');
+      if (!sb) return;
+      sb.classList.toggle('collapsed', !!on);
+      shell?.classList.toggle('is-collapsed', !!on);
+      document.querySelectorAll('.admin-nav__item span, .admin-brand__text').forEach(el => {
+        el.style.display = on ? 'none' : '';
+      });
+      set('admin.sidebar', on ? '1' : '0');
+      if (sidebar) sidebar.checked = !!on;
+    }
+
+    // Init from saved prefs
+    applyDark(get('admin.dark') === '1');
+    applySidebarCollapsed(get('admin.sidebar') === '1');
+
+    dark?.addEventListener('change', (e) => applyDark(e.target.checked));
+    sidebar?.addEventListener('change', (e) => applySidebarCollapsed(e.target.checked));
+
+    reset?.addEventListener('click', () => {
+      del('admin.dark');
+      del('admin.sidebar');
+      applyDark(false);
+      applySidebarCollapsed(false);
+    });
+  })();
+</script>

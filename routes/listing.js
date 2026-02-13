@@ -3,7 +3,7 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const wrapAsync = require("../utils/wrapAsync.js"); //import the wrapAsync function to handle async errors
 const Listing = require("../models/listing.js");//importing the listing model
-const { isLoggedIn,isOwner,validateListing ,validateReview} = require("../middleware.js");
+const { isLoggedIn, isAdmin, isOwner, validateListing ,validateReview} = require("../middleware.js");
 const listingController = require("../controllers/listing.js");
 const multer = require("multer");
 const { storage } = require("../cloudConfig.js");
@@ -20,13 +20,14 @@ const validateObjectIdParam = (req, res, next) => {
 router.route("/")
     .get(wrapAsync(listingController.index))
     .post(
-        isLoggedIn,
+    isLoggedIn,
+    isAdmin,
         upload.single("listing[image]"),
         validateListing,
         wrapAsync(listingController.createListing)
 );
 //New Route
-router.get("/new", isLoggedIn, listingController.renderNewForm);
+router.get("/new", isLoggedIn, isAdmin, listingController.renderNewForm);
 
 //show update and delete routes
 router.route("/:id")

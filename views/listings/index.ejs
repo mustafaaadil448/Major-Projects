@@ -1,4 +1,11 @@
 <% layout('layouts/boilerplate') %>
+
+<% if ((typeof q !== 'undefined' && q) && (!allListings || allListings.length === 0)) { %>
+    <div class="alert alert-light border mt-3 mb-0">
+        No results found for <b><%= q %></b>.
+    </div>
+<% } %>
+
 <div class="filters-bar">
 <div id="filters">
     <div class="filter">

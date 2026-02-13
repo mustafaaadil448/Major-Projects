@@ -1,0 +1,54 @@
+<% layout('layouts/boilerplate') %>
+
+<link rel="stylesheet" href="/CSS/payment.css" />
+
+<div class="payment-page">
+  <div class="row justify-content-center g-4">
+    <div class="col-12 col-lg-8">
+      <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 payment-header">
+        <div>
+          <h3 class="m-0 payment-title">Booking Confirmed</h3>
+          <div class="text-muted payment-subtitle">Payment successful. Your booking is confirmed.</div>
+        </div>
+        <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="/bookings">My bookings</a>
+      </div>
+
+      <div class="card border-0 shadow-sm payment-card">
+        <div class="card-body p-3 p-sm-4">
+          <div class="alert alert-success mb-3">Booking ID: <b><%= booking._id %></b></div>
+
+          <div class="payment-summary mb-3">
+            <div class="payment-summary-body">
+              <div class="payment-row">
+                <div class="payment-label">Listing</div>
+                <div class="payment-value"><%= booking.listing ? booking.listing.title : '' %></div>
+              </div>
+              <div class="payment-row">
+                <div class="payment-label">Guest</div>
+                <div class="payment-value"><%= booking.guestName %></div>
+              </div>
+              <div class="payment-row">
+                <div class="payment-label">Dates</div>
+                <div class="payment-value"><%= new Date(booking.checkInDate).toLocaleDateString() %> → <%= new Date(booking.checkOutDate).toLocaleDateString() %></div>
+              </div>
+            </div>
+
+            <div class="payment-totals">
+              <div class="payment-row mb-0">
+                <div class="fw-semibold">Final Amount</div>
+                <div class="payment-value fw-bold payment-final">₹ <%= (booking.finalAmount || 0).toLocaleString('en-IN') %></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="payment-actions">
+            <a class="btn btn-dark shadow-sm px-4 py-2" href="/bookings">View My Bookings</a>
+            <% if (booking.listing) { %>
+              <a class="btn btn-outline-dark px-4 py-2" href="/<%= booking.listing._id %>">Back to Listing</a>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

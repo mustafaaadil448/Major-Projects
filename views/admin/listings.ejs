@@ -1,0 +1,85 @@
+<% layout('layouts/admin') %>
+
+<div class="admin-grid">
+  <div class="admin-card" style="grid-column: span 12;">
+    <div class="admin-card__bd d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <div class="admin-section-title">Listing Management</div>
+        <div class="admin-muted">Views, bookings, revenue and availability</div>
+      </div>
+      <a class="btn btn-sm btn-dark" href="/new"><i class="fa-solid fa-plus me-2"></i>New listing</a>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 12;">
+    <div class="admin-card__bd">
+      <div class="table-responsive">
+        <table class="table admin-table align-middle">
+          <thead>
+            <tr>
+              <th>Listing</th>
+              <th class="text-end">Views</th>
+              <th class="text-end">Bookings</th>
+              <th class="text-end">Revenue</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% 
+              const sorted = [...(listings||[])].sort((a,b)=> (b.bookingCount||0)-(a.bookingCount||0));
+              const topN = Math.max(1, Math.ceil(sorted.length * 0.10));
+              const topIds = new Set(sorted.slice(0, topN).map(x => String(x._id)));
+            %>
+
+            <% (listings || []).forEach(l => { %>
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="admin-brand__logo" style="width: 36px; height: 36px; border-radius: 14px;">
+                      <i class="fa-regular fa-building"></i>
+                    </div>
+                    <div>
+                      <div class="fw-semibold">
+                        <a href="/<%= l._id %>" class="text-decoration-none"><%= l.title %></a>
+                        <% if (topIds.has(String(l._id))) { %>
+                          <span class="status-badge" style="background: rgba(16,185,129,0.12); color:#10b981; margin-left: 6px;">Top 10%</span>
+                        <% } %>
+                      </div>
+                      <div class="admin-muted small"><%= l.location || '' %> <%= l.country ? (l.location ? '· ' : '') + l.country : '' %></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-end"><%= (l.viewCount || 0).toLocaleString('en-IN') %></td>
+                <td class="text-end"><%= (l.bookingCount || 0).toLocaleString('en-IN') %></td>
+                <td class="text-end">₹ <%= (l.revenue || 0).toLocaleString('en-IN') %></td>
+                <td>
+                  <% if (l.isActive === false) { %>
+                    <span class="status-badge status--failed">Inactive</span>
+                  <% } else { %>
+                    <span class="status-badge status--paid">Active</span>
+                  <% } %>
+                </td>
+                <td class="text-end">
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle admin-action" data-bs-toggle="dropdown" type="button">Quick actions</button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li><a class="dropdown-item" href="/<%= l._id %>/edit">Quick edit</a></li>
+                      <li><a class="dropdown-item" href="/<%= l._id %>">View details</a></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li>
+                        <form method="POST" action="/admin/listings/<%= l._id %>/toggle" class="m-0">
+                          <button class="dropdown-item" type="submit"><%= l.isActive === false ? 'Activate' : 'Deactivate' %></button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

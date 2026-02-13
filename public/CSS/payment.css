@@ -1,0 +1,93 @@
+/* Premium payment page polish (Bootstrap-first, reuse existing theme) */
+
+.payment-page {
+  padding-top: 1.25rem;
+  padding-bottom: 2rem;
+}
+
+.payment-card {
+  border-radius: var(--bs-border-radius-xl);
+}
+
+.payment-header {
+  padding-bottom: 0.25rem;
+}
+
+.payment-title {
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.payment-subtitle {
+  max-width: 56ch;
+}
+
+.payment-summary {
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-lg);
+  overflow: hidden;
+}
+
+.payment-summary-body {
+  padding: 1rem;
+}
+
+.payment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.35rem 0;
+}
+
+.payment-label {
+  font-weight: 600;
+  color: var(--bs-secondary-color);
+}
+
+.payment-value {
+  text-align: right;
+  word-break: break-word;
+  font-variant-numeric: tabular-nums;
+}
+
+.payment-divider {
+  border-top: 1px solid var(--bs-border-color);
+  margin: 0.75rem 0;
+}
+
+.payment-totals {
+  border-top: 1px solid var(--bs-border-color);
+  background: var(--bs-tertiary-bg);
+  padding: 0.9rem 1rem;
+}
+
+.payment-final {
+  font-size: 1.05rem;
+}
+
+.payment-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.payment-actions .btn {
+  border-radius: 999px;
+}
+
+.payment-error {
+  display: none;
+}
+
+@media (max-width: 575.98px) {
+  .payment-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .payment-value {
+    text-align: left;
+  }
+}

@@ -1,0 +1,149 @@
+<% layout('layouts/admin') %>
+
+<div class="admin-grid">
+  <div class="admin-card" style="grid-column: span 12;">
+    <div class="admin-card__bd">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <div class="admin-section-title">Payments</div>
+          <div class="admin-muted">Statuses, refunds, and export</div>
+        </div>
+        <div class="d-flex gap-2">
+          <a class="btn btn-sm btn-outline-secondary" href="/admin/payments.csv">Download CSV</a>
+          <a class="btn btn-sm btn-outline-secondary" href="/admin/analytics">Open analytics</a>
+        </div>
+      </div>
+
+      <form class="row g-2 mt-2" method="GET" action="/admin/payments">
+        <div class="col-12 col-lg-4">
+          <input class="form-control" name="q" placeholder="Search orderId / paymentId" value="<%= query.q %>" />
+        </div>
+        <div class="col-6 col-lg-2">
+          <select class="form-select" name="status">
+            <option value="">All payments</option>
+            <option value="paid" <%= query.status==='paid'?'selected':'' %>>Paid</option>
+            <option value="pending" <%= query.status==='pending'?'selected':'' %>>Pending</option>
+            <option value="failed" <%= query.status==='failed'?'selected':'' %>>Failed</option>
+            <option value="refunded" <%= query.status==='refunded'?'selected':'' %>>Refunded</option>
+          </select>
+        </div>
+        <div class="col-6 col-lg-2">
+          <input type="date" class="form-control" name="from" value="<%= query.from %>" />
+        </div>
+        <div class="col-6 col-lg-2">
+          <input type="date" class="form-control" name="to" value="<%= query.to %>" />
+        </div>
+        <div class="col-12 col-lg-2 d-grid d-lg-flex gap-2">
+          <button class="btn btn-dark" type="submit"><i class="fa-solid fa-magnifying-glass me-2"></i>Apply</button>
+          <a class="btn btn-outline-secondary" href="/admin/payments">Reset</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 8;">
+    <div class="admin-card__bd">
+      <div class="admin-section-title" style="font-size: 14px;">Payment Status Mix</div>
+      <div class="admin-muted">Last 30 days (computed server-side)</div>
+      <div style="height: 260px;" class="mt-2">
+        <canvas id="paymentStatusChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 4;">
+    <div class="admin-card__bd">
+      <div class="admin-section-title" style="font-size: 14px;">Notes</div>
+      <div class="admin-muted">Refund requires a captured payment.</div>
+      <div class="admin-muted mt-2">Export includes booking fields and payment identifiers.</div>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 12;">
+    <div class="admin-card__bd">
+      <div class="table-responsive">
+        <table class="table admin-table align-middle">
+          <thead>
+            <tr>
+              <th>Booking</th>
+              <th>User</th>
+              <th>Amount</th>
+              <th>Payment</th>
+              <th>Order / Payment</th>
+              <th>Created</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% (rows || []).forEach(b => { %>
+              <tr>
+                <td>
+                  <div class="fw-semibold"><%= String(b._id).slice(-8) %></div>
+                  <div class="admin-muted small"><%= b.bookingStatus %></div>
+                </td>
+                <td>
+                  <% if (b.user) { %>
+                    <div class="fw-semibold"><%= b.user.username %></div>
+                    <div class="admin-muted small"><%= b.user.email %></div>
+                  <% } else { %>
+                    <span class="admin-muted">—</span>
+                  <% } %>
+                </td>
+                <td>₹ <%= (b.finalAmount || 0).toLocaleString('en-IN') %></td>
+                <td><span class="status-badge status--<%= b.paymentStatus %>"><%= b.paymentStatus %></span></td>
+                <td class="admin-muted small">
+                  <div><%= b.razorpayOrderId || '—' %></div>
+                  <div><%= b.paymentId || '—' %></div>
+                </td>
+                <td class="admin-muted"><%= b.createdAt ? new Date(b.createdAt).toLocaleString() : '—' %></td>
+                <td class="text-end">
+                  <form method="POST" action="/admin/bookings/<%= b._id %>/refund" class="m-0">
+                    <button class="btn btn-sm btn-outline-secondary" type="submit">Refund</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <div class="admin-muted small mt-2">Showing up to 200 results.</div>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="paymentStatusCountsJson"><%- JSON.stringify(paymentStatusCounts || {}) %></script>
+
+<script>
+  (function(){
+    const el = document.getElementById('paymentStatusChart');
+    if (!el || !window.Chart) return;
+    const counts = JSON.parse(document.getElementById('paymentStatusCountsJson')?.textContent || '{}');
+    const labels = ['paid','pending','failed','refunded'];
+    const data = labels.map(k => counts[k] || 0);
+
+    const css = getComputedStyle(document.documentElement);
+    const paid = (css.getPropertyValue('--status-paid') || '').trim();
+    const pending = (css.getPropertyValue('--status-pending') || '').trim();
+    const failed = (css.getPropertyValue('--status-failed') || '').trim();
+    const refunded = (css.getPropertyValue('--status-refunded') || '').trim();
+    const colors = [paid, pending, failed, refunded].filter(Boolean);
+
+    new Chart(el.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          ...(colors.length ? { backgroundColor: colors } : {})
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+  })();
+</script>

@@ -1,70 +1,393 @@
-<% layout("../layouts/boilerplate.ejs") %>
+<% layout('layouts/admin') %>
 
-<div class="py-4">
-  <h1 class="h3 mb-4">Admin Dashboard</h1>
+<%
+  const rangeSafe = (typeof range !== 'undefined' && range) ? range : '12m';
+  const kpisSafe = (typeof kpis !== 'undefined' && kpis) ? kpis : {};
+  const insightsSafe = (typeof insights !== 'undefined' && insights) ? insights : [];
+  const activitySafe = (typeof activity !== 'undefined' && activity) ? activity : [];
+%>
 
-  <div class="row g-3 mb-4">
-    <div class="col-12 col-md-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Listings</h5>
-          <p class="card-text display-6"><%= stats.totalListings %></p>
+<script>
+  window.__ADMIN__ = {
+    range: <%- JSON.stringify(rangeSafe) %>,
+    analyticsApiUrl: <%- JSON.stringify(typeof analyticsApiUrl !== 'undefined' ? analyticsApiUrl : null) %>,
+    kpisApiUrl: <%- JSON.stringify(typeof kpisApiUrl !== 'undefined' ? kpisApiUrl : null) %>,
+    charts: <%- JSON.stringify(typeof charts !== 'undefined' && charts ? charts : {}) %>,
+    spark: <%- JSON.stringify(typeof spark !== 'undefined' && spark ? spark : []) %>
+  };
+</script>
+
+<div class="admin-grid">
+  <!-- KPI CARDS -->
+  <div class="admin-card kpi" style="grid-column: span 12;">
+    <div class="admin-card__bd">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+          <div class="admin-section-title">Overview</div>
+          <div class="admin-muted">Key metrics and trends</div>
+        </div>
+        <div class="d-flex gap-2">
+          <a class="btn btn-sm btn-outline-secondary" href="/admin?range=7d">Last 7 days</a>
+          <a class="btn btn-sm btn-outline-secondary" href="/admin?range=30d">Last 30 days</a>
+          <a class="btn btn-sm btn-outline-secondary" href="/admin?range=12m">Last 12 months</a>
         </div>
       </div>
-    </div>
-    <div class="col-12 col-md-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Users</h5>
-          <p class="card-text display-6"><%= stats.totalUsers %></p>
+
+      <div class="row g-3 mt-2">
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="admin-card kpi">
+            <div class="admin-card__bd kpi__inner">
+              <div>
+                <div class="kpi__label">Total Revenue</div>
+                <div class="kpi__value">₹ <span id="kpiRevenue"><%= (kpisSafe.totalRevenue || 0).toLocaleString('en-IN') %></span></div>
+                <div class="kpi__trend">↑ <%= kpisSafe.trends?.paidBookingsPct ?? 0 %>% paid bookings (30d vs prev)</div>
+              </div>
+              <canvas class="kpi__spark" id="sparkRevenue"></canvas>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="col-12 col-md-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Reviews</h5>
-          <p class="card-text display-6"><%= stats.totalReviews %></p>
+
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="admin-card kpi">
+            <div class="admin-card__bd kpi__inner">
+              <div>
+                <div class="kpi__label">Total Bookings</div>
+                <div class="kpi__value"><span id="kpiBookings"><%= (kpisSafe.totalBookings || 0).toLocaleString('en-IN') %></span></div>
+                <div class="kpi__trend">All-time total bookings</div>
+              </div>
+              <canvas class="kpi__spark" id="sparkBookings"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="admin-card kpi">
+            <div class="admin-card__bd kpi__inner">
+              <div>
+                <div class="kpi__label">Active Listings</div>
+                <div class="kpi__value"><span id="kpiListings"><%= (kpisSafe.totalListings || 0).toLocaleString('en-IN') %></span></div>
+                <div class="kpi__trend">Inventory currently available</div>
+              </div>
+              <canvas class="kpi__spark" id="sparkListings"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="admin-card kpi">
+            <div class="admin-card__bd kpi__inner">
+              <div>
+                <div class="kpi__label">Total Users</div>
+                <div class="kpi__value"><span id="kpiUsers"><%= (kpisSafe.totalUsers || 0).toLocaleString('en-IN') %></span></div>
+                <div class="kpi__trend">Registered users</div>
+              </div>
+              <canvas class="kpi__spark" id="sparkUsers"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="admin-card kpi">
+            <div class="admin-card__bd kpi__inner">
+              <div>
+                <div class="kpi__label">Conversion Rate</div>
+                <div class="kpi__value"><span id="kpiConversion"><%= kpisSafe.conversionRate || 0 %>%</span></div>
+                <div class="kpi__trend">Paid / total bookings (last 30 days)</div>
+              </div>
+              <canvas class="kpi__spark" id="sparkConversion"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="admin-card kpi">
+            <div class="admin-card__bd kpi__inner">
+              <div>
+                <div class="kpi__label">Pending Payments</div>
+                <div class="kpi__value"><span id="kpiPending"><%= (kpisSafe.pendingPayments || 0).toLocaleString('en-IN') %></span></div>
+                <div class="kpi__trend">Awaiting completion</div>
+              </div>
+              <canvas class="kpi__spark" id="sparkPending"></canvas>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="row g-3">
-    <div class="col-12 col-lg-6">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="card-title">Recent Listings</h5>
-          <ul class="list-group list-group-flush">
-            <% recentListings.forEach(l => { %>
-              <li class="list-group-item d-flex justify-content-between align-items-center">
-                <span>
-                  <a href="/<%= l._id %>"><%= l.title %></a>
-                  <small class="text-muted"> &middot; <%= l.location %>, <%= l.country %></small>
-                </span>
-                <% if (l.owner) { %>
-                  <span class="badge bg-secondary">by <%= l.owner.username %></span>
-                <% } %>
-              </li>
-            <% }) %>
-          </ul>
+  <!-- CHARTS -->
+  <div class="admin-card" style="grid-column: span 8;">
+    <div class="admin-card__bd">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <div class="fw-bold">Revenue Over Time</div>
+          <div class="admin-muted small">Monthly/Daily revenue</div>
+        </div>
+        <div class="pill">
+          <i class="fa-solid fa-filter"></i>
+          <select class="form-select form-select-sm" id="rangeSelect" style="min-width: 160px;">
+              <option value="7d" <%= rangeSafe==='7d'?'selected':'' %>>Last 7 days</option>
+              <option value="30d" <%= rangeSafe==='30d'?'selected':'' %>>Last 30 days</option>
+              <option value="12m" <%= rangeSafe==='12m'?'selected':'' %>>Last 12 months</option>
+          </select>
         </div>
       </div>
+      <div class="mt-3">
+        <canvas id="chartRevenue" height="120"></canvas>
+      </div>
     </div>
-    <div class="col-12 col-lg-6">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="card-title">Recent Users</h5>
-          <ul class="list-group list-group-flush">
-            <% recentUsers.forEach(u => { %>
-              <li class="list-group-item d-flex justify-content-between align-items-center">
-                <span><%= u.username %></span>
-                <span class="badge bg-light text-dark"><%= u.email %></span>
-              </li>
-            <% }) %>
-          </ul>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 4;">
+    <div class="admin-card__bd">
+      <div class="fw-bold">Payment Status</div>
+      <div class="admin-muted small">Paid / Pending / Failed / Refunded</div>
+      <div class="mt-3">
+        <canvas id="chartPayments" height="180"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 6;">
+    <div class="admin-card__bd">
+      <div class="fw-bold">Booking Trends</div>
+      <div class="admin-muted small">Confirmed vs Cancelled</div>
+      <div class="mt-3">
+        <canvas id="chartBookings" height="140"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 6;">
+    <div class="admin-card__bd">
+      <div class="fw-bold">User Growth</div>
+      <div class="admin-muted small">New users over time</div>
+      <div class="mt-3">
+        <canvas id="chartUsers" height="140"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 8;">
+    <div class="admin-card__bd">
+      <div class="fw-bold">Top Performing Listings</div>
+      <div class="admin-muted small">By paid bookings</div>
+      <div class="mt-3">
+        <canvas id="chartTopListings" height="140"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSIGHTS + ACTIVITY -->
+  <div class="admin-card" style="grid-column: span 4;">
+    <div class="admin-card__bd">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="fw-bold">Smart Insights</div>
+          <div class="admin-muted small">Auto-generated highlights</div>
         </div>
+        <span class="status-badge" style="background: rgba(254,66,77,0.12); color: var(--admin-accent);">AI</span>
+      </div>
+      <div class="mt-3 d-grid gap-2">
+        <% (insightsSafe || []).forEach(i => { %>
+          <div class="admin-card admin-card--solid" style="border-radius: 16px;">
+            <div class="admin-card__bd d-flex gap-2 align-items-start">
+              <i class="fa-solid <%= i.kind==='alert' ? 'fa-triangle-exclamation' : (i.kind==='warning' ? 'fa-circle-exclamation' : 'fa-wand-magic-sparkles') %>" style="margin-top: 2px;"></i>
+              <div>
+                <div class="fw-semibold"><%= i.text %></div>
+                <div class="admin-muted small">Based on recent activity</div>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 12;">
+    <div class="admin-card__bd">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <div class="fw-bold">Recent Activity</div>
+          <div class="admin-muted small">Latest platform events</div>
+        </div>
+        <a class="btn btn-sm btn-outline-secondary" href="/admin/bookings">Open booking management</a>
+      </div>
+
+      <div class="row g-2 mt-2">
+        <% (activitySafe || []).forEach(a => { %>
+          <div class="col-12 col-md-6 col-xl-4">
+            <div class="admin-card admin-card--solid" style="border-radius: 16px;">
+              <div class="admin-card__bd d-flex gap-3 align-items-start">
+                <div class="admin-brand__logo" style="width: 40px; height: 40px; border-radius: 14px;">
+                  <i class="fa-solid <%= a.icon %>"></i>
+                </div>
+                <div>
+                  <div class="fw-semibold"><%= a.text %></div>
+                  <div class="admin-muted small"><%= new Date(a.at).toLocaleString() %></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }) %>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+  const cfg = window.__ADMIN__;
+
+  function makeSpark(el, data) {
+    if (!el) return;
+    new Chart(el, {
+      type: 'line',
+      data: {
+        labels: data.map((_, i) => i+1),
+        datasets: [{
+          data,
+          borderColor: 'rgba(254, 66, 77, 0.9)',
+          backgroundColor: 'rgba(254, 66, 77, 0.15)',
+          tension: 0.35,
+          fill: true,
+          pointRadius: 0,
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        scales: { x: { display: false }, y: { display: false } }
+      }
+    });
+  }
+
+  makeSpark(document.getElementById('sparkRevenue'), cfg.spark || []);
+  makeSpark(document.getElementById('sparkBookings'), (cfg.charts?.bookingTrends?.confirmed || []).slice(-12));
+  makeSpark(document.getElementById('sparkListings'), (cfg.charts?.topListings || []).map(x => x.bookings).slice(-12));
+  makeSpark(document.getElementById('sparkUsers'), (cfg.charts?.userGrowth?.data || []).slice(-12));
+  makeSpark(document.getElementById('sparkConversion'), (cfg.charts?.revenue?.data || []).slice(-12).map(x => x ? 1 : 0));
+  makeSpark(document.getElementById('sparkPending'), [<%= kpisSafe.pendingPayments || 0 %>, <%= kpisSafe.pendingPayments || 0 %>, <%= kpisSafe.pendingPayments || 0 %>]);
+
+  let revenueChart, paymentsChart, bookingsChart, usersChart, topListingsChart;
+
+  function renderCharts(charts) {
+    const revenue = charts.revenue;
+    const payment = charts.paymentStatus;
+    const trends = charts.bookingTrends;
+    const growth = charts.userGrowth;
+    const tops = charts.topListings || [];
+
+    revenueChart?.destroy();
+    paymentsChart?.destroy();
+    bookingsChart?.destroy();
+    usersChart?.destroy();
+    topListingsChart?.destroy();
+
+    revenueChart = new Chart(document.getElementById('chartRevenue'), {
+      type: 'line',
+      data: {
+        labels: revenue.labels,
+        datasets: [{
+          label: 'Revenue (₹)',
+          data: revenue.data,
+          borderColor: 'rgba(254, 66, 77, 0.95)',
+          backgroundColor: 'rgba(254, 66, 77, 0.12)',
+          tension: 0.35,
+          fill: true,
+          pointRadius: 0,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: 'rgba(17,17,17,0.06)' } }
+        }
+      }
+    });
+
+    paymentsChart = new Chart(document.getElementById('chartPayments'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Paid', 'Pending', 'Failed', 'Refunded'],
+        datasets: [{
+          data: [payment.paid, payment.pending, payment.failed, payment.refunded],
+          backgroundColor: ['rgba(16,185,129,0.75)','rgba(245,158,11,0.75)','rgba(239,68,68,0.75)','rgba(99,102,241,0.75)'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+
+    bookingsChart = new Chart(document.getElementById('chartBookings'), {
+      type: 'bar',
+      data: {
+        labels: trends.labels,
+        datasets: [
+          { label: 'Confirmed', data: trends.confirmed, backgroundColor: 'rgba(16,185,129,0.55)' },
+          { label: 'Cancelled', data: trends.cancelled, backgroundColor: 'rgba(239,68,68,0.45)' },
+        ]
+      },
+      options: {
+        plugins: { legend: { position: 'bottom' } },
+        scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true } }
+      }
+    });
+
+    usersChart = new Chart(document.getElementById('chartUsers'), {
+      type: 'line',
+      data: {
+        labels: growth.labels,
+        datasets: [{
+          label: 'New Users',
+          data: growth.data,
+          borderColor: 'rgba(17,17,17,0.85)',
+          backgroundColor: 'rgba(17,17,17,0.08)',
+          tension: 0.35,
+          fill: true,
+          pointRadius: 0
+        }]
+      },
+      options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } } } }
+    });
+
+    topListingsChart = new Chart(document.getElementById('chartTopListings'), {
+      type: 'bar',
+      data: {
+        labels: tops.map(x => x.title || 'Listing'),
+        datasets: [{ label: 'Bookings', data: tops.map(x => x.bookings), backgroundColor: 'rgba(254,66,77,0.55)' }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { color: 'rgba(17,17,17,0.06)' } }, y: { grid: { display: false } } }
+      }
+    });
+  }
+
+  renderCharts(cfg.charts);
+
+  document.getElementById('rangeSelect')?.addEventListener('change', async (e) => {
+    const range = e.target.value;
+    try {
+      const res = await fetch(`${cfg.analyticsApiUrl}?range=${encodeURIComponent(range)}`);
+      const json = await res.json();
+      if (!json.ok) return;
+      renderCharts({
+        revenue: json.revenue,
+        bookingTrends: json.bookingTrends,
+        topListings: json.topListings,
+        userGrowth: json.userGrowth,
+        paymentStatus: json.paymentStatus,
+      });
+    } catch (err) {}
+  });
+
+  // Let admin shell know where KPIs endpoint is.
+  document.querySelector('.admin-shell')?.setAttribute('data-kpis-url', cfg.kpisApiUrl);
+</script>

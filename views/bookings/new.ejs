@@ -1,0 +1,360 @@
+<% layout('layouts/boilerplate') %>
+
+<link rel="stylesheet" href="/CSS/booking.css" />
+
+<script>
+  const listing = <%- JSON.stringify(listing) %>;
+  const bookedRanges = <%- JSON.stringify(bookedRanges || []) %>;
+</script>
+
+<div class="booking-page">
+  <div class="row mt-3 g-4">
+  <div class="col-12 col-lg-8">
+    <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 mb-3">
+      <div>
+        <h3 class="m-0 booking-title">Complete your booking</h3>
+        <div class="text-muted"><%= listing.title %> &middot; <%= listing.location %>, <%= listing.country %></div>
+      </div>
+      <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="/<%= listing._id %>">Back</a>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex align-items-center booking-stepper flex-wrap">
+          <span class="badge rounded-pill bg-dark px-3 py-2" id="stepBadge1">1. Guest</span>
+          <span class="badge rounded-pill bg-light text-dark border px-3 py-2" id="stepBadge2">2. Stay</span>
+          <span class="badge rounded-pill bg-light text-dark border px-3 py-2" id="stepBadge3">3. Confirm</span>
+        </div>
+      </div>
+    </div>
+
+    <form id="bookingForm" action="/booking/<%= listing._id %>/create" method="POST" class="needs-validation" novalidate>
+      <input type="hidden" name="booking[listingId]" value="<%= listing._id %>">
+
+      <!-- STEP 1 -->
+      <div class="card border-0 shadow-sm mb-3" id="step1">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="card-title mb-0">Guest Information</h5>
+            <span class="text-muted small">Step 1 of 3</span>
+          </div>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label" for="guestName">Full Name</label>
+              <input class="form-control" id="guestName" name="booking[guestName]" autocomplete="name" required>
+              <div class="invalid-feedback">Name is required.</div>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label" for="age">Age</label>
+              <input class="form-control" id="age" name="booking[age]" type="number" min="1" max="120" required>
+              <div class="invalid-feedback">Valid age is required.</div>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label" for="mobile">Mobile</label>
+              <input class="form-control" id="mobile" name="booking[mobile]" type="tel" inputmode="tel" autocomplete="tel" required>
+              <div class="invalid-feedback">Mobile is required.</div>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label" for="email">Email</label>
+              <input class="form-control" id="email" name="booking[email]" type="email" inputmode="email" autocomplete="email" required>
+              <div class="invalid-feedback">Valid email is required.</div>
+            </div>
+          </div>
+
+          <div class="d-grid d-sm-flex justify-content-sm-end mt-3 booking-actions">
+            <button class="btn btn-dark shadow-sm" type="button" id="toStep2">Continue</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="card border-0 shadow-sm mb-3 d-none" id="step2">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="card-title mb-0">Stay Details</h5>
+            <span class="text-muted small">Step 2 of 3</span>
+          </div>
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="checkInDate">Check-in Date</label>
+              <input class="form-control" id="checkInDate" name="booking[checkInDate]" type="date" required>
+              <div class="invalid-feedback">Check-in date is required.</div>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="checkOutDate">Check-out Date</label>
+              <input class="form-control" id="checkOutDate" name="booking[checkOutDate]" type="date" required>
+              <div class="invalid-feedback">Check-out date is required.</div>
+            </div>
+          </div>
+
+          <div class="alert alert-warning mt-3 d-none" id="dateWarning" role="status" aria-live="polite"></div>
+
+          <div class="d-grid gap-2 d-sm-flex justify-content-sm-between mt-3 booking-actions">
+            <button class="btn btn-outline-dark" type="button" id="backTo1">Back</button>
+            <button class="btn btn-dark shadow-sm" type="button" id="toStep3">Review</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="card border-0 shadow-sm mb-3 d-none" id="step3">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="card-title mb-0">Confirmation</h5>
+            <span class="text-muted small">Step 3 of 3</span>
+          </div>
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="border rounded-3 p-3 bg-light">
+                <div class="fw-bold mb-2">Guest</div>
+                <div id="confirmGuest" class="text-muted"></div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="border rounded-3 p-3 bg-light">
+                <div class="fw-bold mb-2">Stay</div>
+                <div id="confirmStay" class="text-muted"></div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="border rounded-3 p-3 bg-light">
+                <div class="fw-bold mb-2">Payment</div>
+                <div id="confirmPay" class="text-muted"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid gap-2 d-sm-flex justify-content-sm-between mt-3 booking-actions">
+            <button class="btn btn-outline-dark" type="button" id="backTo2">Back</button>
+            <button class="btn btn-success shadow-sm" type="submit" id="confirmBtn">
+              <span class="spinner-border spinner-border-sm me-2 d-none" id="confirmSpinner" role="status" aria-hidden="true"></span>
+              <span id="confirmText">Confirm & Pay</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="position-sticky booking-summary-sticky">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-3 p-lg-4">
+          <div class="d-flex justify-content-between">
+            <div>
+              <div class="fw-bold">Booking Summary</div>
+              <div class="text-muted">₹ <span id="pricePerNight"><%= (listing.price || 0) %></span> / night</div>
+            </div>
+          </div>
+
+          <hr />
+
+          <div class="d-flex justify-content-between">
+            <span>Nights</span>
+            <span id="nights">0</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Total</span>
+            <span>₹ <span id="total">0</span></span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Tax (5%)</span>
+            <span>₹ <span id="tax">0</span></span>
+          </div>
+          <hr />
+          <div class="d-flex justify-content-between fw-bold">
+            <span>Final</span>
+            <span>₹ <span id="final">0</span></span>
+          </div>
+
+          <p class="text-muted small mt-2 mb-0">Dates already booked will be blocked.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<script>
+  // Bootstrap validation
+  (() => {
+    const form = document.getElementById('bookingForm');
+    form.addEventListener('submit', (event) => {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    }, false);
+  })();
+
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const step3 = document.getElementById('step3');
+  const badge1 = document.getElementById('stepBadge1');
+  const badge2 = document.getElementById('stepBadge2');
+  const badge3 = document.getElementById('stepBadge3');
+
+  const guestName = document.getElementById('guestName');
+  const age = document.getElementById('age');
+  const mobile = document.getElementById('mobile');
+  const email = document.getElementById('email');
+  const checkInDate = document.getElementById('checkInDate');
+  const checkOutDate = document.getElementById('checkOutDate');
+
+  const dateWarning = document.getElementById('dateWarning');
+
+  const nightsEl = document.getElementById('nights');
+  const totalEl = document.getElementById('total');
+  const taxEl = document.getElementById('tax');
+  const finalEl = document.getElementById('final');
+
+  const confirmGuest = document.getElementById('confirmGuest');
+  const confirmStay = document.getElementById('confirmStay');
+  const confirmPay = document.getElementById('confirmPay');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const confirmSpinner = document.getElementById('confirmSpinner');
+  const confirmText = document.getElementById('confirmText');
+
+  function setStep(n) {
+    step1.classList.toggle('d-none', n !== 1);
+    step2.classList.toggle('d-none', n !== 2);
+    step3.classList.toggle('d-none', n !== 3);
+
+    badge1.className = n === 1 ? 'badge rounded-pill bg-dark px-3 py-2' : 'badge rounded-pill bg-light text-dark border px-3 py-2';
+    badge2.className = n === 2 ? 'badge rounded-pill bg-dark px-3 py-2' : 'badge rounded-pill bg-light text-dark border px-3 py-2';
+    badge3.className = n === 3 ? 'badge rounded-pill bg-dark px-3 py-2' : 'badge rounded-pill bg-light text-dark border px-3 py-2';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function parseDate(value) {
+    if (!value) return null;
+    const d = new Date(value);
+    d.setHours(0,0,0,0);
+    return d;
+  }
+
+  function daysBetween(a, b) {
+    const ms = 24*60*60*1000;
+    return Math.round((b - a) / ms);
+  }
+
+  function overlapsBooked(ci, co) {
+    // any booked range overlaps if booked.checkIn < co && booked.checkOut > ci
+    return bookedRanges.some(r => {
+      const rIn = new Date(r.checkInDate); rIn.setHours(0,0,0,0);
+      const rOut = new Date(r.checkOutDate); rOut.setHours(0,0,0,0);
+      return rIn < co && rOut > ci;
+    });
+  }
+
+  function updateAmounts() {
+    const price = Number(listing.price || 0);
+    const ci = parseDate(checkInDate.value);
+    const co = parseDate(checkOutDate.value);
+
+    dateWarning.classList.add('d-none');
+    dateWarning.textContent = '';
+
+    if (!ci || !co) {
+      nightsEl.textContent = '0';
+      totalEl.textContent = '0';
+      taxEl.textContent = '0';
+      finalEl.textContent = '0';
+      return { ok: false };
+    }
+
+    const nights = daysBetween(ci, co);
+    if (!Number.isFinite(nights) || nights <= 0) {
+      dateWarning.textContent = 'Check-out must be after check-in.';
+      dateWarning.classList.remove('d-none');
+      return { ok: false };
+    }
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    if (ci < today) {
+      dateWarning.textContent = 'Check-in cannot be in the past.';
+      dateWarning.classList.remove('d-none');
+      return { ok: false };
+    }
+
+    if (overlapsBooked(ci, co)) {
+      dateWarning.textContent = 'Selected dates overlap an existing booking.';
+      dateWarning.classList.remove('d-none');
+      return { ok: false };
+    }
+
+    const total = nights * price;
+    const tax = Math.round(total * 0.05);
+    const final = total + tax;
+
+    nightsEl.textContent = String(nights);
+    totalEl.textContent = String(total);
+    taxEl.textContent = String(tax);
+    finalEl.textContent = String(final);
+
+    return { ok: true, nights, total, tax, final, price };
+  }
+
+  document.getElementById('toStep2').addEventListener('click', () => {
+    const valid = guestName.value.trim() && age.value && mobile.value.trim() && email.value.trim();
+    if (!valid) {
+      document.getElementById('bookingForm').classList.add('was-validated');
+      return;
+    }
+    setStep(2);
+  });
+
+  document.getElementById('backTo1').addEventListener('click', () => setStep(1));
+  document.getElementById('backTo2').addEventListener('click', () => setStep(2));
+
+  checkInDate.addEventListener('change', updateAmounts);
+  checkOutDate.addEventListener('change', updateAmounts);
+
+  function toISODate(d) {
+    const dt = new Date(d);
+    dt.setHours(0, 0, 0, 0);
+    return dt.toISOString().split('T')[0];
+  }
+
+  function syncDateMins() {
+    const today = new Date();
+    const min = toISODate(today);
+    checkInDate.min = min;
+
+    // checkout must be at least the same day; validation logic will still enforce > check-in
+    const ci = parseDate(checkInDate.value);
+    checkOutDate.min = ci ? toISODate(ci) : min;
+  }
+
+  checkInDate.addEventListener('change', syncDateMins);
+
+  document.getElementById('toStep3').addEventListener('click', () => {
+    const result = updateAmounts();
+    if (!result.ok) {
+      document.getElementById('bookingForm').classList.add('was-validated');
+      return;
+    }
+
+    confirmGuest.textContent = `${guestName.value.trim()} (Age: ${age.value}), ${mobile.value.trim()}, ${email.value.trim()}`;
+    confirmStay.textContent = `${checkInDate.value} → ${checkOutDate.value} (${result.nights} nights)`;
+    confirmPay.textContent = `Total ₹${result.total} + Tax ₹${result.tax} = Final ₹${result.final}`;
+
+    setStep(3);
+  });
+
+  document.getElementById('bookingForm').addEventListener('submit', () => {
+    // If form is valid and submission proceeds, show a light loading state.
+    if (document.getElementById('bookingForm').checkValidity()) {
+      confirmBtn.disabled = true;
+      confirmSpinner.classList.remove('d-none');
+      confirmText.textContent = 'Redirecting…';
+    }
+  });
+
+  // Init
+  setStep(1);
+  syncDateMins();
+  updateAmounts();
+</script>

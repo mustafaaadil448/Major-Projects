@@ -1,0 +1,280 @@
+<% layout('layouts/boilerplate') %>
+
+<link rel="stylesheet" href="/CSS/trips.css" />
+
+<% const isAdminView = (typeof isAdmin !== 'undefined') && !!isAdmin; %>
+
+<div class="trips-wrap">
+  <div class="row mt-3">
+    <div class="col-12 col-lg-10 offset-lg-1">
+      <div class="trips-header mb-3">
+        <h2 class="mb-1">My Trips</h2>
+        <div class="text-muted">Manage your stays and payments</div>
+      </div>
+
+      <div class="trips-toolbar p-3 p-md-3 mb-3">
+        <div class="row g-2 align-items-center">
+          <div class="col-12 col-md-3">
+            <label class="form-label small text-muted mb-1" for="tripFilter">Filter</label>
+            <select class="form-select" id="tripFilter">
+              <option value="all">All</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="pending_payment">Pending Payment</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label small text-muted mb-1" for="tripSearch">Search</label>
+            <input class="form-control" id="tripSearch" placeholder="Search by property name…" autocomplete="off" />
+          </div>
+          <div class="col-12 col-md-3 text-md-end">
+            <div class="small text-muted mt-4 mt-md-0">Showing <span id="tripCount">0</span> trips</div>
+          </div>
+        </div>
+      </div>
+
+      <% if (!bookings || bookings.length === 0) { %>
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4 text-center">
+            <div class="mb-3" aria-hidden="true">
+              <svg width="88" height="88" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16 22C16 18.686 18.686 16 22 16H42C45.314 16 48 18.686 48 22V44C48 47.314 45.314 50 42 50H22C18.686 50 16 47.314 16 44V22Z" stroke="currentColor" stroke-opacity="0.4" stroke-width="2"/>
+                <path d="M22 14V20" stroke="currentColor" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round"/>
+                <path d="M42 14V20" stroke="currentColor" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round"/>
+                <path d="M20 28H44" stroke="currentColor" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round"/>
+                <path d="M24 34H30" stroke="currentColor" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h4 class="mb-1">No trips planned yet</h4>
+            <div class="text-muted mb-3">Start exploring stays and plan your next getaway.</div>
+            <a class="btn btn-dark rounded-pill px-4" href="/">Explore stays</a>
+          </div>
+        </div>
+      <% } else { %>
+        <div id="tripEmpty" class="d-none">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 text-center">
+              <h4 class="mb-1">No trips match your search</h4>
+              <div class="text-muted">Try changing the filter or search keyword.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-grid gap-3">
+          <% bookings.forEach(b => { %>
+            <% const title = b.listing?.title || 'Listing removed'; %>
+            <% const loc = b.listing ? `${b.listing.location || ''}${b.listing.country ? ', ' + b.listing.country : ''}` : ''; %>
+            <% const imgUrl = b.listing?.image?.url ? b.listing.image.url.replace('/upload', '/upload/f_auto,q_auto,w_400') : ''; %>
+            <% const isPaid = b.paymentStatus === 'paid'; %>
+            <% const isPendingPay = b.paymentStatus === 'pending' && b.bookingStatus === 'pending'; %>
+            <% const isCancelled = b.bookingStatus === 'cancelled'; %>
+            <% const today = new Date(); today.setHours(0,0,0,0); %>
+            <% const checkIn = new Date(b.checkInDate); checkIn.setHours(0,0,0,0); %>
+            <% const checkOut = new Date(b.checkOutDate); checkOut.setHours(0,0,0,0); %>
+            <% const isUpcoming = checkIn >= today && !isCancelled; %>
+
+            <div
+              class="trip-card bg-body"
+              data-trip-card
+              data-title="<%= title %>"
+              data-booking-status="<%= b.bookingStatus %>"
+              data-payment-status="<%= b.paymentStatus %>"
+              data-checkin="<%= new Date(b.checkInDate).toISOString().split('T')[0] %>"
+              data-checkout="<%= new Date(b.checkOutDate).toISOString().split('T')[0] %>"
+            >
+              <div class="row g-0">
+                <div class="col-12 col-md-4 col-lg-3">
+                  <% if (imgUrl) { %>
+                    <img src="<%= imgUrl %>" class="trip-thumb" alt="Property thumbnail" />
+                  <% } else { %>
+                    <div class="h-100 d-flex align-items-center justify-content-center bg-light text-muted" style="min-height: 140px;">No image</div>
+                  <% } %>
+                </div>
+
+                <div class="col-12 col-md-8 col-lg-9">
+                  <div class="p-3 p-md-3">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                      <div class="flex-grow-1">
+                        <div class="d-flex align-items-start justify-content-between gap-2">
+                          <div>
+                            <div class="fw-bold fs-5">
+                              <% if (b.listing) { %>
+                                <a class="text-decoration-none" href="/<%= b.listing._id %>"><%= title %></a>
+                              <% } else { %>
+                                <span><%= title %></span>
+                              <% } %>
+                            </div>
+                            <div class="text-muted"><%= loc %></div>
+                            <div class="trip-meta text-muted mt-1">Booking ID: <%= b._id %></div>
+                          </div>
+
+                          <div class="text-end">
+                            <div class="fw-bold fs-5">₹ <%= (b.finalAmount || 0).toLocaleString('en-IN') %></div>
+                            <div class="d-flex flex-wrap gap-2 justify-content-end mt-1">
+                              <% if (b.paymentStatus === 'paid') { %>
+                                <span class="badge-soft badge-paid">Paid</span>
+                              <% } else if (b.paymentStatus === 'pending') { %>
+                                <span class="badge-soft badge-pending">Pending</span>
+                              <% } else { %>
+                                <span class="badge-soft badge-failed">Failed</span>
+                              <% } %>
+
+                              <% if (b.bookingStatus === 'confirmed') { %>
+                                <span class="badge-soft badge-confirmed">Confirmed</span>
+                              <% } else if (b.bookingStatus === 'cancelled') { %>
+                                <span class="badge-soft badge-cancelled">Cancelled</span>
+                              <% } else { %>
+                                <span class="badge-soft badge-booking-pending">Pending</span>
+                              <% } %>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="row g-2 mt-2">
+                          <div class="col-12 col-lg-6">
+                            <div class="text-muted">
+                              <span class="me-2" aria-hidden="true">📅</span>
+                              <%= new Date(b.checkInDate).toLocaleDateString() %> → <%= new Date(b.checkOutDate).toLocaleDateString() %>
+                            </div>
+                            <div class="text-muted">Nights: <%= b.nights %></div>
+                          </div>
+                          <div class="col-12 col-lg-6">
+                            <div class="text-muted">
+                              <span class="me-2" aria-hidden="true">👤</span>
+                              Guest: <%= b.guestName %>
+                            </div>
+                            <div class="text-muted">Guests: 1</div>
+                          </div>
+                        </div>
+
+                        <% if (isAdminView && b.user) { %>
+                          <div class="mt-2">
+                            <span class="text-muted small">User: <%= b.user.email || b.user.username %> &middot; ID: <%= b.user._id %></span>
+                          </div>
+                        <% } %>
+                      </div>
+
+                      <div class="trip-actions d-flex flex-column gap-2" style="min-width: 190px;">
+                        <button class="btn btn-outline-dark" type="button" data-trip-toggle="<%= b._id %>" aria-expanded="false">View Details</button>
+
+                        <% if (isPaid) { %>
+                          <a class="btn btn-dark" href="/bookings/<%= b._id %>/invoice">Download Invoice</a>
+                        <% } %>
+
+                        <% if (isPendingPay && !isCancelled) { %>
+                          <a class="btn btn-success" href="/payment/<%= b._id %>">Pay Now</a>
+                        <% } %>
+
+                        <% if (isUpcoming && !isCancelled) { %>
+                          <form method="POST" action="/bookings/<%= b._id %>/cancel">
+                            <button class="btn btn-outline-danger" type="submit">Cancel Booking</button>
+                          </form>
+                        <% } %>
+
+                        <% if (isAdminView) { %>
+                          <% if (b.user) { %>
+                            <a class="btn btn-outline-secondary" href="/admin/users/<%= b.user._id %>">View User Profile</a>
+                          <% } %>
+                          <form method="POST" action="/admin/bookings/<%= b._id %>/force-cancel">
+                            <button class="btn btn-outline-danger" type="submit">Force Cancel</button>
+                          </form>
+                        <% } %>
+                      </div>
+                    </div>
+
+                    <div class="trip-details mt-3" data-trip-details="<%= b._id %>">
+                      <div class="row g-3">
+                        <div class="col-12 col-lg-6">
+                          <div class="card border-0 bg-light">
+                            <div class="card-body">
+                              <div class="fw-bold mb-2">Booking Breakdown</div>
+                              <div class="d-flex justify-content-between"><span>Price per night</span><span>₹ <%= (b.pricePerNight || 0).toLocaleString('en-IN') %></span></div>
+                              <div class="d-flex justify-content-between"><span>Nights</span><span><%= b.nights %></span></div>
+                              <div class="d-flex justify-content-between"><span>Taxes</span><span>₹ <%= (b.taxAmount || 0).toLocaleString('en-IN') %></span></div>
+                              <div class="d-flex justify-content-between"><span>Service fee</span><span>₹ 0</span></div>
+                              <hr class="my-2" />
+                              <div class="d-flex justify-content-between fw-bold"><span>Total paid</span><span>₹ <%= (b.finalAmount || 0).toLocaleString('en-IN') %></span></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                          <div class="card border-0 bg-light">
+                            <div class="card-body">
+                              <div class="fw-bold mb-2">Guest Details</div>
+                              <div class="text-muted">Name: <%= b.guestName %></div>
+                              <div class="text-muted">Email: <%= b.email %></div>
+                              <div class="text-muted">Mobile: <%= b.mobile %></div>
+                              <div class="text-muted">Age: <%= b.age %></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                          <div class="card border-0 bg-light">
+                            <div class="card-body">
+                              <div class="fw-bold mb-2">Payment Details</div>
+                              <div class="text-muted">Payment ID: <%= b.paymentId || '—' %></div>
+                              <div class="text-muted">Payment Date: <%= b.paymentStatus === 'paid' ? new Date(b.updatedAt).toLocaleString() : '—' %></div>
+                              <div class="text-muted">Method: <%= b.razorpayOrderId ? 'Razorpay' : '—' %></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                          <div class="card border-0 bg-light">
+                            <div class="card-body">
+                              <div class="fw-bold mb-2">Policies</div>
+                              <div class="text-muted">Cancellation policy: Free cancellation before check-in (if eligible).</div>
+                              <div class="text-muted">Refund policy: Refunds depend on payment provider and property rules.</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-12">
+                          <div class="card border-0 bg-light">
+                            <div class="card-body">
+                              <div class="fw-bold mb-2">Status Timeline</div>
+                              <div class="timeline">
+                                <div class="timeline-item is-done">
+                                  <div class="timeline-dot"></div>
+                                  <div>
+                                    <div class="fw-semibold">Booking Created</div>
+                                    <div class="text-muted small"><%= new Date(b.createdAt).toLocaleString() %></div>
+                                  </div>
+                                </div>
+
+                                <div class="timeline-item <%= b.paymentStatus === 'paid' ? 'is-done' : '' %>">
+                                  <div class="timeline-dot"></div>
+                                  <div>
+                                    <div class="fw-semibold">Payment Completed</div>
+                                    <div class="text-muted small"><%= b.paymentStatus === 'paid' ? new Date(b.updatedAt).toLocaleString() : 'Pending' %></div>
+                                  </div>
+                                </div>
+
+                                <div class="timeline-item <%= b.bookingStatus === 'confirmed' ? 'is-done' : '' %>">
+                                  <div class="timeline-dot"></div>
+                                  <div>
+                                    <div class="fw-semibold">Confirmation Sent</div>
+                                    <div class="text-muted small"><%= b.bookingStatus === 'confirmed' ? 'Confirmed' : (b.bookingStatus === 'cancelled' ? 'Cancelled' : 'Pending') %></div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script src="/CSS/js/trips.js"></script>

@@ -12,6 +12,10 @@ const userSchema = new Schema({
         enum: ["user", "admin"],
         default: "user",
     },
+    isBlocked: {
+        type: Boolean,
+        default: false,
+    },
 });
 userSchema.plugin(passportLocalMongoose);
 

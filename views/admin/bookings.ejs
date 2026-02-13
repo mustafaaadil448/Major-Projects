@@ -1,0 +1,222 @@
+<% layout('layouts/admin') %>
+
+<script>
+  window.__ADMIN_BOOKINGS__ = {
+    bookings: <%- JSON.stringify(bookings || []) %>
+  };
+</script>
+
+<div class="admin-grid">
+  <div class="admin-card" style="grid-column: span 12;">
+    <div class="admin-card__bd">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <div class="admin-section-title">Booking Management</div>
+          <div class="admin-muted">Search, filter, sort, and take quick actions</div>
+        </div>
+        <a class="btn btn-sm btn-outline-secondary" href="/admin/payments">Open payments</a>
+      </div>
+
+      <form class="row g-2 mt-2" method="GET" action="/admin/bookings">
+        <div class="col-12 col-lg-4">
+          <input class="form-control" name="q" placeholder="Search bookingId / orderId / paymentId" value="<%= query.q %>" />
+        </div>
+        <div class="col-6 col-lg-2">
+          <select class="form-select" name="status">
+            <option value="">All statuses</option>
+            <option value="pending" <%= query.bookingStatus==='pending'?'selected':'' %>>Pending</option>
+            <option value="confirmed" <%= query.bookingStatus==='confirmed'?'selected':'' %>>Confirmed</option>
+            <option value="cancelled" <%= query.bookingStatus==='cancelled'?'selected':'' %>>Cancelled</option>
+          </select>
+        </div>
+        <div class="col-6 col-lg-2">
+          <select class="form-select" name="payment">
+            <option value="">All payments</option>
+            <option value="paid" <%= query.paymentStatus==='paid'?'selected':'' %>>Paid</option>
+            <option value="pending" <%= query.paymentStatus==='pending'?'selected':'' %>>Pending</option>
+            <option value="failed" <%= query.paymentStatus==='failed'?'selected':'' %>>Failed</option>
+            <option value="refunded" <%= query.paymentStatus==='refunded'?'selected':'' %>>Refunded</option>
+          </select>
+        </div>
+        <div class="col-6 col-lg-2">
+          <input type="date" class="form-control" name="from" value="<%= query.from %>" />
+        </div>
+        <div class="col-6 col-lg-2">
+          <input type="date" class="form-control" name="to" value="<%= query.to %>" />
+        </div>
+        <div class="col-6 col-lg-2">
+          <input class="form-control" name="minAmount" placeholder="Min ₹" value="<%= query.minAmount %>" />
+        </div>
+        <div class="col-6 col-lg-2">
+          <input class="form-control" name="maxAmount" placeholder="Max ₹" value="<%= query.maxAmount %>" />
+        </div>
+        <div class="col-12 col-lg-4">
+          <select class="form-select" name="sort">
+            <option value="-createdAt" <%= query.sort==='-createdAt'?'selected':'' %>>Newest</option>
+            <option value="createdAt" <%= query.sort==='createdAt'?'selected':'' %>>Oldest</option>
+            <option value="-finalAmount" <%= query.sort==='-finalAmount'?'selected':'' %>>Amount (high → low)</option>
+            <option value="finalAmount" <%= query.sort==='finalAmount'?'selected':'' %>>Amount (low → high)</option>
+          </select>
+        </div>
+        <div class="col-12 col-lg-4 d-grid d-lg-flex gap-2">
+          <button class="btn btn-dark" type="submit"><i class="fa-solid fa-magnifying-glass me-2"></i>Apply</button>
+          <a class="btn btn-outline-secondary" href="/admin/bookings">Reset</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 12;">
+    <div class="admin-card__bd">
+      <div class="table-responsive">
+        <table class="table admin-table align-middle">
+          <thead>
+            <tr>
+              <th>Booking</th>
+              <th>Listing</th>
+              <th>User</th>
+              <th>Dates</th>
+              <th class="text-end">Amount</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% (bookings || []).forEach(b => { %>
+              <tr>
+                <td>
+                  <div class="fw-semibold"><%= String(b._id).slice(-8) %></div>
+                  <div class="admin-muted small"><%= new Date(b.createdAt).toLocaleString() %></div>
+                </td>
+                <td>
+                  <% if (b.listing) { %>
+                    <a href="/<%= b.listing._id %>" class="text-decoration-none"><%= b.listing.title %></a>
+                    <div class="admin-muted small"><%= b.listing.location || '' %> <%= b.listing.country ? (b.listing.location ? '· ' : '') + b.listing.country : '' %></div>
+                  <% } else { %>
+                    <span class="admin-muted">Listing removed</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (b.user) { %>
+                    <div class="fw-semibold">
+                      <%= b.user.username %>
+                      <% if (b.user.role === 'admin') { %>
+                        <span class="pill ms-2">Admin</span>
+                      <% } %>
+                      <% if (b.user.isBlocked) { %>
+                        <span class="status-badge status--failed" style="margin-left: 6px;">Blocked</span>
+                      <% } %>
+                    </div>
+                    <div class="admin-muted small"><%= b.user.email %></div>
+                  <% } else { %>
+                    <span class="admin-muted">User removed</span>
+                  <% } %>
+                </td>
+                <td>
+                  <div><%= new Date(b.checkInDate).toLocaleDateString() %> → <%= new Date(b.checkOutDate).toLocaleDateString() %></div>
+                  <div class="admin-muted small"><%= b.nights %> nights</div>
+                </td>
+                <td class="text-end">₹ <%= (b.finalAmount || 0).toLocaleString('en-IN') %></td>
+                <td>
+                  <span class="status-badge status--<%= b.paymentStatus %>"><%= b.paymentStatus %></span>
+                </td>
+                <td>
+                  <span class="status-badge" style="background: rgba(17,17,17,0.06);"><%= b.bookingStatus %></span>
+                </td>
+                <td class="text-end">
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle admin-action" data-bs-toggle="dropdown" type="button">Quick action</button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#bookingModal" data-booking-id="<%= b._id %>">View details</button>
+                      </li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li>
+                        <form method="POST" action="/admin/bookings/<%= b._id %>/status?_method=PATCH" class="m-0">
+                          <input type="hidden" name="status" value="confirmed" />
+                          <button class="dropdown-item" type="submit">Confirm</button>
+                        </form>
+                      </li>
+                      <li>
+                        <form method="POST" action="/admin/bookings/<%= b._id %>/status?_method=PATCH" class="m-0">
+                          <input type="hidden" name="status" value="cancelled" />
+                          <button class="dropdown-item" type="submit">Cancel</button>
+                        </form>
+                      </li>
+                      <li>
+                        <form method="POST" action="/admin/bookings/<%= b._id %>/refund" class="m-0">
+                          <button class="dropdown-item" type="submit">Refund</button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <div class="admin-muted small mt-2">Showing up to 200 results. Use filters to narrow down.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Booking Details Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content" style="border-radius: 18px; overflow: hidden;">
+      <div class="modal-header">
+        <h5 class="modal-title">Booking Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="bookingModalBody" class="admin-muted">Loading…</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById('bookingModal');
+  const body = document.getElementById('bookingModalBody');
+  const data = window.__ADMIN_BOOKINGS__.bookings || [];
+
+  modal?.addEventListener('show.bs.modal', (ev) => {
+    const bookingId = ev.relatedTarget?.getAttribute('data-booking-id');
+    const b = data.find(x => String(x._id) === String(bookingId));
+    if (!b) {
+      body.textContent = 'Booking not found.';
+      return;
+    }
+
+    const rows = [
+      ['Booking ID', b._id],
+      ['User', b.user ? `${b.user.username} (${b.user.email})` : '—'],
+      ['Listing', b.listing ? b.listing.title : '—'],
+      ['Guest', `${b.guestName || '—'} · Age ${b.age || '—'}`],
+      ['Contact', `${b.email || '—'} · ${b.mobile || '—'}`],
+      ['Dates', `${new Date(b.checkInDate).toLocaleDateString()} → ${new Date(b.checkOutDate).toLocaleDateString()} (${b.nights} nights)`],
+      ['Pricing', `₹${(b.totalAmount||0).toLocaleString('en-IN')} + ₹${(b.taxAmount||0).toLocaleString('en-IN')} = ₹${(b.finalAmount||0).toLocaleString('en-IN')}`],
+      ['Payment', `${b.paymentStatus} · order ${b.razorpayOrderId || '—'} · payment ${b.paymentId || '—'} · refund ${b.refundId || '—'}`],
+      ['Booking status', b.bookingStatus],
+      ['Created', new Date(b.createdAt).toLocaleString()],
+    ];
+
+    body.innerHTML = `
+      <div class="admin-card admin-card--solid" style="border-radius: 16px;">
+        <div class="admin-card__bd">
+          ${rows.map(([k,v]) => `
+            <div class="d-flex justify-content-between gap-3 py-2" style="border-bottom: 1px solid rgba(17,17,17,0.06);">
+              <div class="fw-semibold">${k}</div>
+              <div class="text-end">${String(v)}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  });
+</script>

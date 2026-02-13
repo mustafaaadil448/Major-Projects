@@ -10,13 +10,18 @@
                     <a class="nav-link" href="/">Explore</a>
                 </div>
 
-                <form class="d-flex flex-column flex-sm-row gap-2 ms-md-auto search-form" role="search">
-                    <input class="form-control search-input" type="search" placeholder="Search destinations" />
+                <form class="d-flex flex-column flex-sm-row gap-2 ms-md-auto search-form" role="search" action="/" method="GET">
+                    <input class="form-control search-input" type="search" name="q" value="<%= (typeof searchQuery !== 'undefined' && searchQuery) ? searchQuery : '' %>" placeholder="Search destinations" />
                     <button class="btn search-btn" type="submit"><i class="fa-solid fa-magnifying-glass"></i>Search</button>
                 </form>
 
                 <div class="navbar-nav">
-                    <a class="nav-link" href="/new">Airbnb Your home</a>
+                    <% if (currentUser && currentUser.role === 'admin') { %>
+                        <a class="nav-link" href="/new">Create New Listing</a>
+                    <% } %>
+                    <% if (currentUser && currentUser.role === 'user') { %>
+                        <a class="nav-link" href="/bookings"><b>My bookings</b></a>
+                    <% } %>
                     <% if (currentUser && currentUser.role === 'admin') { %>
                         <a class="nav-link" href="/admin"><b>Admin</b></a>
                     <% } %>

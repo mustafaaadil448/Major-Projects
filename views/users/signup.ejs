@@ -16,8 +16,26 @@
                 <label for="password" class="form-label">password</label>
                 <input name="password" id= "password" type="password" class="form-control" required />
             </div>
+
+            <div class="mb-3">
+                <label for="role" class="form-label">Account type</label>
+                <select name="role" id="role" class="form-select">
+                    <option value="user" selected>User</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+
             <button class="btn btn-success">Signup</button>
         </form>
+
+        <script>
+            const roleSelect = document.getElementById('role');
+            function syncAdminKey() {
+                // No admin key required.
+            }
+            roleSelect.addEventListener('change', syncAdminKey);
+            syncAdminKey();
+        </script>
 
         
         </div>

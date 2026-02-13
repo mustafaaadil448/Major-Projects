@@ -1,0 +1,103 @@
+<% layout('layouts/admin') %>
+
+<div class="admin-grid">
+  <div class="admin-card" style="grid-column: span 12;">
+    <div class="admin-card__bd">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <div class="admin-section-title">User Management</div>
+          <div class="admin-muted">Roles, access, and account controls</div>
+        </div>
+      </div>
+
+      <form class="row g-2 mt-2" method="GET" action="/admin/users">
+        <div class="col-12 col-lg-6">
+          <input class="form-control" name="q" placeholder="Search username or email" value="<%= query.q %>" />
+        </div>
+        <div class="col-6 col-lg-3">
+          <select class="form-select" name="role">
+            <option value="">All roles</option>
+            <option value="user" <%= query.role==='user'?'selected':'' %>>User</option>
+            <option value="admin" <%= query.role==='admin'?'selected':'' %>>Admin</option>
+          </select>
+        </div>
+        <div class="col-6 col-lg-3 d-grid d-lg-flex gap-2">
+          <button class="btn btn-dark" type="submit"><i class="fa-solid fa-magnifying-glass me-2"></i>Apply</button>
+          <a class="btn btn-outline-secondary" href="/admin/users">Reset</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-card" style="grid-column: span 12;">
+    <div class="admin-card__bd">
+      <div class="table-responsive">
+        <table class="table admin-table align-middle">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% (users || []).forEach(u => { %>
+              <tr>
+                <td>
+                  <div class="fw-semibold"><%= u.username %></div>
+                  <div class="admin-muted small"><%= String(u._id).slice(-8) %></div>
+                </td>
+                <td><%= u.email %></td>
+                <td>
+                  <span class="pill"><%= u.role || 'user' %></span>
+                </td>
+                <td>
+                  <% if (u.isBlocked) { %>
+                    <span class="status-badge status--failed">Blocked</span>
+                  <% } else { %>
+                    <span class="status-badge status--paid">Active</span>
+                  <% } %>
+                </td>
+                <td class="admin-muted"><%= u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—' %></td>
+                <td class="text-end">
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle admin-action" data-bs-toggle="dropdown" type="button">Quick action</button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <form method="POST" action="/admin/users/<%= u._id %>/role" class="m-0">
+                          <input type="hidden" name="role" value="admin" />
+                          <button class="dropdown-item" type="submit">Make admin</button>
+                        </form>
+                      </li>
+                      <li>
+                        <form method="POST" action="/admin/users/<%= u._id %>/role" class="m-0">
+                          <input type="hidden" name="role" value="user" />
+                          <button class="dropdown-item" type="submit">Make user</button>
+                        </form>
+                      </li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li>
+                        <form method="POST" action="/admin/users/<%= u._id %>/block" class="m-0">
+                          <button class="dropdown-item" type="submit"><%= u.isBlocked ? 'Unblock' : 'Block' %></button>
+                        </form>
+                      </li>
+                      <li>
+                        <form method="POST" action="/admin/users/<%= u._id %>/delete" class="m-0" onsubmit="return confirm('Delete this user?');">
+                          <button class="dropdown-item text-danger" type="submit">Delete</button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <div class="admin-muted small mt-2">Showing up to 200 results.</div>
+    </div>
+  </div>
+</div>

@@ -24,6 +24,15 @@ const listingSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "User",
     },
+    isActive: {
+        type: Boolean,
+        default: true,
+    },
+    viewCount: {
+        type: Number,
+        default: 0,
+        min: 0,
+    },
     geometry:{
         type: {
             type: String,

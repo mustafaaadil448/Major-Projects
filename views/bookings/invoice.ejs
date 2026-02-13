@@ -1,0 +1,117 @@
+<% layout('layouts/boilerplate') %>
+
+<link rel="stylesheet" href="/CSS/payment.css" />
+<link rel="stylesheet" href="/CSS/invoice.css" />
+
+<div class="payment-page">
+  <div class="row justify-content-center g-4">
+    <div class="col-12 col-lg-8">
+      <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 payment-header">
+        <div>
+          <h3 class="m-0 payment-title">Invoice</h3>
+          <div class="text-muted invoice-meta">Booking ID: <span class="invoice-id js-copy" title="Click to copy"><%= booking._id %></span></div>
+        </div>
+        <div class="d-flex gap-2 invoice-actions">
+          <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="/bookings">Back to My Trips</a>
+          <button class="btn btn-dark btn-sm rounded-pill px-3" onclick="window.print()">Print / Save PDF</button>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm payment-card invoice-block">
+        <div class="card-body p-3 p-sm-4">
+          <div class="payment-summary mb-3 invoice-block">
+            <div class="payment-summary-body">
+              <div class="payment-row">
+                <div class="payment-label">Property</div>
+                <div class="payment-value">
+                  <% if (booking.listing) { %>
+                    <%= booking.listing.title %>
+                  <% } else { %>
+                    Listing removed
+                  <% } %>
+                </div>
+              </div>
+              <div class="payment-row">
+                <div class="payment-label">Guest</div>
+                <div class="payment-value"><%= booking.guestName %> &middot; <%= booking.email %> &middot; <%= booking.mobile %></div>
+              </div>
+              <div class="payment-row">
+                <div class="payment-label">Dates</div>
+                <div class="payment-value">
+                  <%= new Date(booking.checkInDate).toLocaleDateString() %> → <%= new Date(booking.checkOutDate).toLocaleDateString() %>
+                  (<%= booking.nights %> nights)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-7 invoice-block">
+              <div class="payment-summary h-100">
+                <div class="payment-summary-body">
+                  <div class="fw-bold mb-2">Charges</div>
+                  <div class="payment-row"><div>Price / night</div><div class="payment-value">₹ <%= (booking.pricePerNight || 0).toLocaleString('en-IN') %></div></div>
+                  <div class="payment-row"><div>Nights</div><div class="payment-value"><%= booking.nights %></div></div>
+                  <div class="payment-row"><div>Subtotal</div><div class="payment-value">₹ <%= (booking.totalAmount || 0).toLocaleString('en-IN') %></div></div>
+                  <div class="payment-row"><div>Taxes</div><div class="payment-value">₹ <%= (booking.taxAmount || 0).toLocaleString('en-IN') %></div></div>
+                  <div class="payment-row"><div>Service fee</div><div class="payment-value">₹ 0</div></div>
+                </div>
+                <div class="payment-totals">
+                  <div class="payment-row mb-0">
+                    <div class="fw-semibold">Total paid</div>
+                    <div class="payment-value fw-bold payment-final">₹ <%= (booking.finalAmount || 0).toLocaleString('en-IN') %></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-5 invoice-block">
+              <div class="payment-summary h-100">
+                <div class="payment-summary-body">
+                  <div class="fw-bold mb-2">Payment</div>
+                  <div class="payment-row"><div class="payment-label">Status</div><div class="payment-value"><%= booking.paymentStatus %></div></div>
+                  <div class="payment-row"><div class="payment-label">Payment ID</div><div class="payment-value"><span class="js-copy" title="Click to copy"><%= booking.paymentId || '—' %></span></div></div>
+                  <div class="payment-row"><div class="payment-label">Order ID</div><div class="payment-value"><span class="js-copy" title="Click to copy"><%= booking.razorpayOrderId || '—' %></span></div></div>
+                  <div class="payment-row"><div class="payment-label">Payment date</div><div class="payment-value"><%= booking.paymentStatus === 'paid' ? new Date(booking.updatedAt).toLocaleString() : '—' %></div></div>
+                  <div class="payment-row"><div class="payment-label">Method</div><div class="payment-value"><%= booking.razorpayOrderId ? 'Razorpay' : '—' %></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    function selectText(el) {
+      try {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      } catch (e) {}
+    }
+
+    async function copyText(text) {
+      const value = (text || '').trim();
+      if (!value || value === '—') return false;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(value);
+        return true;
+      }
+      return false;
+    }
+
+    document.addEventListener('click', async (e) => {
+      const target = e.target && e.target.closest ? e.target.closest('.js-copy') : null;
+      if (!target) return;
+
+      selectText(target);
+      try { await copyText(target.textContent); } catch (err) {}
+    });
+  })();
+</script>

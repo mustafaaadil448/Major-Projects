@@ -1,0 +1,43 @@
+/* Booking wizard polish (Bootstrap-first, no custom colors) */
+
+.booking-page .card {
+  border-radius: var(--bs-border-radius-lg);
+}
+
+.booking-title {
+  line-height: 1.15;
+}
+
+.booking-stepper {
+  gap: 0.5rem;
+}
+
+.booking-stepper .badge {
+  font-weight: 600;
+}
+
+.booking-actions .btn {
+  border-radius: 999px;
+}
+
+.booking-actions .btn.btn-dark,
+.booking-actions .btn.btn-success {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.booking-actions .btn.btn-outline-dark {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.booking-summary-sticky {
+  top: 90px;
+}
+
+@media (max-width: 991.98px) {
+  .booking-summary-sticky {
+    position: static !important;
+    top: auto !important;
+  }
+}

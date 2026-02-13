@@ -3,3 +3,10 @@
 
 # Node modules
 node_modules/
+
+# Local scratch files
+h.txt
+headers.txt
+jar.txt
+jar2.txt
+out.html
