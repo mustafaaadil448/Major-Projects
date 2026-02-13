@@ -22,6 +22,8 @@ Required keys:
 - `CLOUD_NAME` (Cloudinary)
 - `CLOUD_API_KEY` (Cloudinary)
 - `CLOUD_API_SECRET` (Cloudinary)
+- `RAZORPAY_KEY_ID` (Razorpay)
+- `RAZORPAY_KEY_SECRET` (Razorpay)
 
 Tip: copy from `.env.example` and fill values.
 
