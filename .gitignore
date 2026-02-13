@@ -3,7 +3,6 @@
 
 # Node modules
 node_modules/
-
 # Local scratch files
 h.txt
 headers.txt
