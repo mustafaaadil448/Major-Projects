@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 
 const Booking = require("../models/booking.js");
 const ExpressError = require("../utils/ExpressError.js");
-const razorpay = require("../config/razorpay.js");
+const { getRazorpayClient } = require("../utils/razorpay.js");
 
 function assertBookingAccess(req, booking) {
     const isAdmin = req.user?.role === "admin";
@@ -41,6 +41,13 @@ module.exports.createOrder = async (req, res) => {
     if (process.env.NODE_ENV !== "production") {
         console.log("[RZP] key:", process.env.RAZORPAY_KEY_ID);
         console.log("[RZP] bookingId:", bookingId, "amountPaise:", amount);
+    }
+
+    let razorpay;
+    try {
+        razorpay = getRazorpayClient();
+    } catch (e) {
+        throw new ExpressError(500, e?.message || "Razorpay is not configured");
     }
 
     try {

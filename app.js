@@ -157,6 +157,13 @@ async function main() {
 //Error handling middleware
 app.use((err, req, res, next) => {
     let { statusCode=500, message="Something went wrong!" } = err;
+
+    const accept = (req.get("accept") || "").toLowerCase();
+    const wantsJson = req.originalUrl?.startsWith?.("/api/") || accept.includes("application/json") || req.xhr;
+    if (wantsJson) {
+        return res.status(statusCode).json({ success: false, message });
+    }
+
     res.status(statusCode).render("error.ejs", { message });
     // res.status(statusCode).send(message);
     // res.send("Something went wrong! please try agian");
