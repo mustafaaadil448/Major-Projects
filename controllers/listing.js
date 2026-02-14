@@ -10,15 +10,44 @@ function escapeRegex(str) {
 // Show all listings
 module.exports.index = async (req, res) => {
     const q = (req.query.q || "").toString().trim();
+    const activeFilter = (req.query.filter || "").toString().trim().toLowerCase();
+
+    const filterKeywords = {
+        rooms: "room|rooms|bed|beds|bedroom|suite",
+        iconic: "city|cities|downtown|metro|urban",
+        mountains: "mountain|mountains|hill|hills|valley|peak|peaks",
+        castles: "castle|castles|fort|forts|palace|palaces",
+        pools: "pool|pools|swimming",
+        camping: "camp|camping|tent|tents",
+        farms: "farm|farms|ranch",
+        arctic: "arctic|snow|ice|winter",
+        domes: "dome|domes|igloo|geodesic",
+        boats: "boat|boats|houseboat|yacht",
+    };
 
     const filter = { isActive: { $ne: false } };
+
+    const andParts = [];
     if (q) {
         const rx = new RegExp(escapeRegex(q), "i");
-        filter.$or = [{ title: rx }, { location: rx }, { country: rx }];
+        andParts.push({ $or: [{ title: rx }, { location: rx }, { country: rx }, { description: rx }] });
     }
 
-    const allListings = await Listing.find(filter).select("title price image").lean();
-    res.render("listings/index.ejs", { allListings, q });
+    if (activeFilter && activeFilter !== "trending" && filterKeywords[activeFilter]) {
+        const rx = new RegExp(filterKeywords[activeFilter], "i");
+        andParts.push({ $or: [{ title: rx }, { location: rx }, { country: rx }, { description: rx }] });
+    }
+
+    if (andParts.length === 1) {
+        Object.assign(filter, andParts[0]);
+    } else if (andParts.length > 1) {
+        filter.$and = andParts;
+    }
+
+    const sort = activeFilter === "trending" ? { viewCount: -1 } : undefined;
+
+    const allListings = await Listing.find(filter).sort(sort).select("title price image").lean();
+    res.render("listings/index.ejs", { allListings, q, activeFilter });
 };
 
 // Render New Form

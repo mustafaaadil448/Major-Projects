@@ -6,52 +6,86 @@
     </div>
 <% } %>
 
+<%
+    const qVal = (typeof q !== 'undefined' && q) ? String(q) : '';
+    const qParam = qVal ? `&q=${encodeURIComponent(qVal)}` : '';
+    const activeFilterVal = (typeof activeFilter !== 'undefined' && activeFilter) ? String(activeFilter) : '';
+    function filterHref(key) {
+        return `/?filter=${encodeURIComponent(key)}${qParam}`;
+    }
+    function filterClass(key) {
+        return activeFilterVal === key ? 'filter is-active' : 'filter';
+    }
+%>
+
 <div class="filters-bar">
 <div id="filters">
-    <div class="filter">
+    <a class="filter-link" href="<%= filterHref('trending') %>">
+    <div class="<%= filterClass('trending') %>">
         <div><i class="fa-solid fa-fire"></i></div>
         <p>Trending</p>
     </div>
-    <div class="filter">
+    </a>
+    <a class="filter-link" href="<%= filterHref('rooms') %>">
+    <div class="<%= filterClass('rooms') %>">
         <div><i class="fa-solid fa-bed"></i></div>
         <p>Rooms</p>
     </div>
-    <div class="filter">
+    </a>
+    <a class="filter-link" href="<%= filterHref('iconic') %>">
+    <div class="<%= filterClass('iconic') %>">
         <div><i class="fa-solid fa-city"></i></div>
         <p>Iconic Cities</p>
     </div>
-    <div class="filter">
+    </a>
+    <a class="filter-link" href="<%= filterHref('mountains') %>">
+    <div class="<%= filterClass('mountains') %>">
         <div><i class="fa-solid fa-mountain-city"></i></div>
         <p>Mountains</p>
     </div>
-    <div class="filter">
+    </a>
+    <a class="filter-link" href="<%= filterHref('castles') %>">
+    <div class="<%= filterClass('castles') %>">
         <div><i class="fa-brands fa-fort-awesome"></i></div>
         <p>Castles</p>
     </div>
-    <div class="filter">
+    </a>
+    <a class="filter-link" href="<%= filterHref('pools') %>">
+    <div class="<%= filterClass('pools') %>">
         <div><i class="fa-solid fa-person-swimming"></i></div>
         <p>Amazing Pools</p>
     </div>
-    <div class="filter">
+    </a>
+    <a class="filter-link" href="<%= filterHref('camping') %>">
+    <div class="<%= filterClass('camping') %>">
         <div><i class="fa-solid fa-campground"></i></div>
         <p>Camping</p>
     </div>
-    <div class="filter">
+    </a>
+    <a class="filter-link" href="<%= filterHref('farms') %>">
+    <div class="<%= filterClass('farms') %>">
         <div><i class="fa-solid fa-cow"></i></div>
         <p>Farms</p>
     </div>
-    <div class="filter">
+    </a>
+    <a class="filter-link" href="<%= filterHref('arctic') %>">
+    <div class="<%= filterClass('arctic') %>">
         <div><i class="fa-regular fa-snowflake"></i></div>
         <p>Arctic</p>
     </div>
-    <div class="filter">
+    </a>
+    <a class="filter-link" href="<%= filterHref('domes') %>">
+    <div class="<%= filterClass('domes') %>">
         <div><i class="fa-solid fa-igloo"></i></div>
         <p>Domes</p>
     </div>
-    <div class="filter">
+    </a>
+    <a class="filter-link" href="<%= filterHref('boats') %>">
+    <div class="<%= filterClass('boats') %>">
         <div><i class="fa-solid fa-ship"></i></div>
         <p>Boats</p>
     </div>
+    </a>
 </div>
 
 <div class="tax-toggle">
