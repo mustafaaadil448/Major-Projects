@@ -25,6 +25,15 @@
     flex: 0 0 auto;
 }
 
+/* Ensure children (icons/text) also don't pick link styles */
+#filters .filter-link *,
+#filters .filter-link *:hover,
+#filters .filter-link *:focus,
+#filters .filter-link *:active{
+    text-decoration: none !important;
+    color: inherit !important;
+}
+
 .filter.is-active{
     opacity: 1;
 }
