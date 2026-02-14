@@ -10,7 +10,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
-        folder: "Wanderlust DEV",
+        folder: "StayEase DEV",
         allowedFormats: ["jpeg", "png", "jpg"]
     },
 });

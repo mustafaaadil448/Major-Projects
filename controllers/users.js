@@ -40,7 +40,7 @@ module.exports.signup = async(req,res,next) => {
         const token = signToken(registerUser);
         setAuthCookie(req, res, token);
 
-        req.flash("success", "Welcome to Wanderlust!");
+        req.flash("success", "Welcome to StayEase Pvt. Ltd.! ");
         res.redirect("/");
     });
     
@@ -59,7 +59,7 @@ module.exports.login = async (req, res) => {
     const token = signToken(req.user);
     setAuthCookie(req, res, token);
 
-    req.flash("success","Welcome back to Wanderlust!");
+    req.flash("success","Welcome back to StayEase Pvt. Ltd.! ");
     let redirectUrl = res.locals.redirectUrl || "/";
     res.redirect(redirectUrl);
     };

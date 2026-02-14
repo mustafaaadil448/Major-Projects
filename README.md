@@ -1,4 +1,4 @@
-# Wanderlust
+# StayEase Pvt. Ltd.
 
 Express + MongoDB + EJS app with authentication, listings, reviews, Cloudinary image uploads, and Mapbox maps.
 
