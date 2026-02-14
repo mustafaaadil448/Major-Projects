@@ -14,9 +14,13 @@
     flex-wrap: wrap;
 }
 
-.filter-link{
-    text-decoration: none;
-    color: inherit;
+.filters-bar .filter-link,
+.filters-bar .filter-link:hover,
+.filters-bar .filter-link:focus,
+.filters-bar .filter-link:active,
+.filters-bar .filter-link:visited{
+    text-decoration: none !important;
+    color: inherit !important;
     display: block;
     flex: 0 0 auto;
 }
