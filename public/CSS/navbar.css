@@ -1,53 +1,269 @@
-.search-btn{
-    background: var(--se-primary);
-    color: white;
-    border-radius: 25px;
-    padding: 0.5rem 1rem;
-    white-space: nowrap;
-    border: none;
-    box-shadow: 0 10px 22px rgba(10, 61, 98, 0.18);
-}
-.search-btn:hover{
-    background: #073250;
-    color: #fff;
-}
-.search-btn i{
-    display: inline;
-    margin-right: 0.5rem;
-}
-.search-input{
-    border-radius: 25px;
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-    width: 100%;
-    border: 1px solid rgba(17, 24, 39, 0.16);
+/* Premium sticky header */
+.se-navbar{
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(10px);
 }
 
-.search-input:focus{
-    border-color: rgba(10, 61, 98, 0.45);
-    box-shadow: 0 0 0 0.2rem rgba(10, 61, 98, 0.15);
+.se-navbar-inner{
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
 }
 
 .brand-logo{
-    height: 42px;
+    height: 62px;
     width: auto;
     display: block;
     object-fit: contain;
 }
 
-.navbar-brand{
+.se-brand{
     display: flex;
     align-items: center;
+    gap: 0.08rem;
+    text-decoration: none;
 }
 
-/* Make search bar usable inside collapsed navbar */
-.search-form{
+.se-brand-name{
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-size: 1.22rem;
+    line-height: 1;
+    color: #111827; /* fallback */
+    margin-left: -1rem;
+    background: linear-gradient(90deg, rgba(255, 107, 139, 0.98), rgba(58, 134, 255, 0.98));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+@media (max-width: 420px) {
+    .brand-logo{
+        height: 52px;
+    }
+    .se-brand-name{
+        display: none;
+    }
+}
+
+/* Center glass search bar */
+.se-search{
     width: 100%;
 }
-@media (min-width: 768px) {
-    .search-form{
-        width: auto;
-        min-width: 320px;
-        max-width: 520px;
+
+.se-search-shell{
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px solid rgba(17, 24, 39, 0.10);
+    box-shadow: 0 10px 25px rgba(17, 24, 39, 0.08);
+    backdrop-filter: blur(14px);
+}
+
+.se-search-icon{
+    color: rgba(17, 24, 39, 0.55);
+    font-size: 0.95rem;
+    padding-left: 0.35rem;
+}
+
+.se-search-input{
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0.15rem 0;
+    font-size: 0.98rem;
+    color: #111827;
+}
+
+.se-search-input::placeholder{
+    color: rgba(17, 24, 39, 0.55);
+}
+
+.se-search-btn{
+    background: #fe424d;
+    color: #fff;
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    border: none;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.se-search-btn:hover,
+.se-search-btn:focus{
+    background: #fe424d;
+    color: #fff;
+}
+
+/* Right actions */
+.se-actions{
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.6rem;
+}
+
+.se-btn-outline{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 0.95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    color: #111827;
+    text-decoration: none;
+    font-weight: 600;
+    background: transparent;
+    transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.se-btn-outline:hover,
+.se-btn-outline:focus{
+    background: rgba(17, 24, 39, 0.04);
+    border-color: rgba(17, 24, 39, 0.20);
+    color: #111827;
+}
+
+.se-btn-ghost{
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 0.85rem;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 600;
+    color: rgba(17, 24, 39, 0.82);
+    transition: background-color 160ms ease;
+}
+
+.se-btn-ghost:hover,
+.se-btn-ghost:focus{
+    background: rgba(17, 24, 39, 0.04);
+    color: #111827;
+}
+
+.se-btn-solid{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 0.95rem;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 700;
+    background: #fe424d;
+    color: #fff;
+    transition: filter 160ms ease;
+}
+
+.se-btn-solid:hover,
+.se-btn-solid:focus{
+    color: #fff;
+    filter: brightness(0.98);
+}
+
+/* Avatar dropdown */
+.se-profile .dropdown-toggle::after{
+    display: none;
+}
+
+.se-avatar-btn{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    background: #fff;
+    padding: 0;
+}
+
+.se-avatar{
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    color: #111827;
+    background: rgba(254, 66, 77, 0.12);
+}
+
+.se-dropdown{
+    border-radius: 14px;
+    border: 1px solid rgba(17, 24, 39, 0.10);
+    box-shadow: 0 20px 50px rgba(17, 24, 39, 0.14);
+    padding: 0.4rem;
+}
+
+.se-dropdown .dropdown-item{
+    border-radius: 10px;
+    padding: 0.55rem 0.7rem;
+    font-weight: 600;
+}
+
+.se-dropdown .dropdown-item:hover,
+.se-dropdown .dropdown-item:focus{
+    background: rgba(17, 24, 39, 0.06);
+}
+
+/* Logout icon appears on hover */
+.se-logout{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    text-decoration: none;
+    color: rgba(17, 24, 39, 0.70);
+    border: 1px solid rgba(17, 24, 39, 0.10);
+    background: rgba(255, 255, 255, 0.6);
+    opacity: 0;
+    transform: translateY(2px);
+    pointer-events: none;
+    transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.se-actions:hover .se-logout{
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.se-logout:hover,
+.se-logout:focus{
+    color: #111827;
+    background: rgba(17, 24, 39, 0.04);
+}
+
+/* Sizing on desktop */
+@media (min-width: 992px) {
+    .se-search{
+        max-width: 640px;
+    }
+}
+
+/* Mobile: make search comfortable */
+@media (max-width: 991.98px) {
+    .se-search-shell{
+        box-shadow: 0 8px 22px rgba(17, 24, 39, 0.07);
+    }
+    .se-actions{
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+    .se-logout{
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
     }
 }

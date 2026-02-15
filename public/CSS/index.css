@@ -1,22 +1,41 @@
 #filters{
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1rem;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 0.9rem;
     flex: 1 1 auto;
     min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge legacy */
+    padding: 0.55rem 0;
+}
+
+#filters::-webkit-scrollbar{
+    display: none;
 }
 
 .filters-bar{
+    position: relative;
     display: flex;
     align-items: center;
     gap: 1rem;
-    flex-wrap: wrap;
-    background: var(--se-surface);
-    border: 1px solid var(--se-border);
-    border-radius: 18px;
-    padding: 0.75rem 0.75rem;
-    box-shadow: 0 10px 30px rgba(17, 24, 39, 0.04);
+    flex-wrap: nowrap;
+    padding: 0.75rem 0;
+    background: rgba(255, 255, 255, 0.92);
+}
+
+.filters-bar::after{
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: rgba(17, 24, 39, 0.08);
 }
 
 .filters-bar .filter-link,
@@ -39,91 +58,236 @@
     color: inherit !important;
 }
 
-.filter.is-active{
-    opacity: 1;
+.filter{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.15rem 0.65rem;
+    color: rgba(17, 24, 39, 0.45);
+    transition: transform 180ms ease, color 180ms ease;
+    flex: 0 0 auto;
+    min-width: 74px;
 }
-        .filter{
-            text-align: center;
-            margin-right: 0.25rem;
-            margin-top: 0;
-            opacity: 0.9;
-            flex: 0 0 auto;
-            min-width: 72px;
-            padding: 0.5rem 0.6rem;
-            border-radius: 14px;
-            color: var(--se-charcoal);
-            transition: background 160ms ease, transform 160ms ease, opacity 160ms ease;
-        }
-        .filter:hover{
-            opacity: 1;
-            cursor: pointer;
-            background: rgba(10, 61, 98, 0.08);
-        }
-        .filter p{
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin: 0.25rem 0 0;
-        }
 
-        .filter i{
-            color: var(--se-charcoal);
-            font-size: 1.1rem;
-        }
+.filter i{
+    color: rgba(17, 24, 39, 0.45);
+    transition: color 180ms ease;
+    font-size: 1.1rem;
+}
 
-        .filter.is-active{
-            background: rgba(10, 61, 98, 0.12);
-            color: var(--se-primary);
-        }
-        .filter.is-active i{
-            color: var(--se-primary);
-        }
-        .tax-info{
-            display : none;
-        }
-        .tax-toggle{
-            border: 1px solid rgba(17, 24, 39, 0.12);
-            border-radius: 1rem;
-            height: auto;
-            padding:  0.5rem 1rem;
-            display: flex;
-            align-items: center;
-            flex: 0 0 auto;
-            margin-left: auto;
-            background: #fff;
-        }
+.filter p{
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: inherit;
+}
 
-        /* Mobile + Tablets: make filters horizontally scrollable */
-        @media (max-width: 1024px) {
-            #filters {
-                display: flex;
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                overflow-y: hidden;
-                -webkit-overflow-scrolling: touch;
-                touch-action: pan-x;
-                width: 100%;
-                max-width: 100%;
-                padding-bottom: 0.5rem;
-                gap: 1.25rem;
-                scrollbar-width: none; /* Firefox */
-                -ms-overflow-style: none; /* IE/Edge legacy */
-            }
-            #filters::-webkit-scrollbar {
-                display: none; /* Chrome/Safari */
-            }
-        }
+.filter::after{
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(17, 24, 39, 0.16);
+    transform: translateX(-50%) scale(0);
+    transform-origin: center;
+    transition: transform 180ms ease, background-color 180ms ease;
+}
 
-        /* Small Mobile: stack tax toggle under filters */
-        @media (max-width: 768px) {
-            .filters-bar{
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .tax-toggle {
-                width: 100%;
-                margin-left: 0;
-            }
-        }
+.filter:hover{
+    color: rgba(17, 24, 39, 0.78);
+    transform: translateY(-2px);
+    cursor: pointer;
+}
+
+.filter:hover i{
+    color: rgba(17, 24, 39, 0.78);
+}
+
+.filter:hover::after{
+    transform: translateX(-50%) scale(1);
+}
+
+.filter.is-active{
+    color: rgba(17, 24, 39, 0.92);
+}
+
+.filter.is-active i{
+    color: rgba(17, 24, 39, 0.92);
+}
+
+.filter.is-active::after{
+    transform: translateX(-50%) scale(1);
+    background: rgba(17, 24, 39, 0.88);
+}
+
+.tax-info{
+    display: none;
+    margin-left: 0.6rem;
+}
+
+.tax-toggle{
+    border: 1px solid rgba(17, 24, 39, 0.12);
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 8px 18px rgba(17, 24, 39, 0.06);
+    height: auto;
+    padding: 0.9rem 1.15rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.9rem;
+    flex: 0 0 auto;
+    margin-left: auto;
+    width: fit-content;
+    white-space: nowrap;
+}
+
+.tax-toggle-label{
+    font-weight: 600;
+    color: rgba(17, 24, 39, 0.88);
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+}
+
+/* Bootstrap switch styling (matches screenshot reliably) */
+.se-tax-switch{
+    display: flex;
+    align-items: center;
+}
+
+.se-tax-switch .form-check-input{
+    width: 38px;
+    height: 20px;
+    margin: 0;
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: rgba(17, 24, 39, 0.14);
+    background-image: none;
+    border: 1px solid rgba(17, 24, 39, 0.10);
+    border-radius: 999px;
+    box-shadow: none;
+}
+
+.se-tax-switch .form-check-input::before{
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: #fff;
+    transform: translateX(0);
+    transition: transform 180ms ease;
+}
+
+.se-tax-switch .form-check-input:checked{
+    background-color: rgba(17, 24, 39, 0.60);
+    border-color: rgba(17, 24, 39, 0.10);
+}
+
+.se-tax-switch .form-check-input:checked::before{
+    transform: translateX(18px);
+}
+
+.se-tax-switch .form-check-input:focus{
+    box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.10);
+}
+
+/* iOS-style switch */
+.se-switch{
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 20px;
+    flex: 0 0 auto;
+    vertical-align: middle;
+    user-select: none;
+}
+
+/* Hide the native checkbox UI, keep it clickable */
+.tax-toggle .se-switch > input#flexSwitchCheckDefault{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0 !important;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    z-index: 2;
+}
+
+/* Extra safety: some environments still paint checkbox UI; fully neutralize it */
+.tax-toggle .se-switch > input#flexSwitchCheckDefault{
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.se-slider{
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(17, 24, 39, 0.14);
+    transition: 180ms ease;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.10);
+    display: block;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.se-slider:before{
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    top: 2px;
+    background-color: #fff;
+    transition: 180ms ease;
+    border-radius: 999px;
+    box-shadow: 0 8px 14px rgba(17, 24, 39, 0.12);
+}
+
+.tax-toggle .se-switch > input#flexSwitchCheckDefault:checked + .se-slider{
+    background-color: rgba(17, 24, 39, 0.60);
+}
+
+.tax-toggle .se-switch > input#flexSwitchCheckDefault:checked + .se-slider:before{
+    transform: translateX(18px);
+}
+
+.tax-toggle .se-switch > input#flexSwitchCheckDefault:focus-visible + .se-slider{
+    box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.10), 0 0 0 4px rgba(17, 24, 39, 0.10);
+}
+
+/* Small Mobile: stack toggle under filters */
+@media (max-width: 768px) {
+    .filters-bar{
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .tax-toggle{
+        width: 100%;
+        margin-left: 0;
+    }
+}
 
         /* Listings: grid on desktop/tablet, horizontal scroll on mobile */
         .listing-row {

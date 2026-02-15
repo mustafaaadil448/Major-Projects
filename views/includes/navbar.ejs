@@ -1,38 +1,65 @@
-<nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/" aria-label="StayEase">
-            <img class="brand-logo" src="/assets/stayease-logo.png" alt="StayEase" />
+<nav class="navbar navbar-expand-lg se-navbar sticky-top" aria-label="Primary">
+    <div class="container-fluid se-navbar-inner">
+        <a class="navbar-brand se-brand" href="/" aria-label="StayEase">
+            <img class="brand-logo" src="/assets/stayease.png" alt="StayEase" />
+            <span class="se-brand-name" aria-hidden="true">StayEase</span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="d-flex flex-column flex-md-row align-items-md-center gap-2 w-100">
-                <div class="navbar-nav">
-                    <a class="nav-link" href="/">Explore</a>
-                </div>
 
-                <form class="d-flex flex-column flex-sm-row gap-2 ms-md-auto search-form" role="search" action="/" method="GET">
-                    <input class="form-control search-input" type="search" name="q" value="<%= (typeof searchQuery !== 'undefined' && searchQuery) ? searchQuery : '' %>" placeholder="Search destinations" />
-                    <button class="btn search-btn" type="submit"><i class="fa-solid fa-magnifying-glass"></i>Search</button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-3 w-100">
+                <form class="se-search mx-lg-auto order-lg-2" role="search" action="/" method="GET">
+                    <div class="se-search-shell">
+                        <i class="fa-solid fa-magnifying-glass se-search-icon" aria-hidden="true"></i>
+                        <input
+                            class="se-search-input"
+                            type="search"
+                            name="q"
+                            value="<%= (typeof searchQuery !== 'undefined' && searchQuery) ? searchQuery : '' %>"
+                            placeholder="Search destinations, stays or experiences"
+                            autocomplete="off"
+                        />
+                        <button class="btn se-search-btn" type="submit">Search</button>
+                    </div>
                 </form>
 
-                <div class="navbar-nav">
-                    <% if (currentUser && currentUser.role === 'admin') { %>
-                        <a class="nav-link" href="/new">Create New Listing</a>
-                    <% } %>
+                <div class="se-actions ms-lg-auto order-lg-3">
                     <% if (currentUser && currentUser.role === 'user') { %>
-                        <a class="nav-link" href="/bookings"><b>My bookings</b></a>
+                        <a class="se-btn-outline" href="/bookings">My Bookings</a>
                     <% } %>
                     <% if (currentUser && currentUser.role === 'admin') { %>
-                        <a class="nav-link" href="/admin"><b>Admin</b></a>
+                        <a class="se-btn-outline" href="/admin">Admin</a>
                     <% } %>
+
                     <% if (!currentUser) { %>
-                        <a class="nav-link" href="/signup"><b>Sign up</b></a>
-                        <a class="nav-link" href="/login"><b>Login</b></a>
+                        <a class="se-btn-ghost" href="/login">Log in</a>
+                        <a class="se-btn-solid" href="/signup">Sign up</a>
                     <% } %>
+
                     <% if (currentUser) { %>
-                        <a class="nav-link" href="/logout"><b>Log out</b></a>
+                        <div class="dropdown se-profile">
+                            <button class="se-avatar-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Profile menu">
+                                <span class="se-avatar" aria-hidden="true"><%= (currentUser.username ? String(currentUser.username).charAt(0).toUpperCase() : 'U') %></span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end se-dropdown">
+                                <% if (currentUser && currentUser.role === 'user') { %>
+                                    <li><a class="dropdown-item" href="/bookings">My Bookings</a></li>
+                                <% } %>
+                                <% if (currentUser && currentUser.role === 'admin') { %>
+                                    <li><a class="dropdown-item" href="/admin">Admin Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="/admin/users">Users</a></li>
+                                <% } %>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/logout">Log out</a></li>
+                            </ul>
+                        </div>
+
+                        <a class="se-logout" href="/logout" aria-label="Log out" title="Log out">
+                            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+                        </a>
                     <% } %>
                 </div>
             </div>
