@@ -5,6 +5,17 @@ body{
     min-height: 100vh;
 }
 
+:root{
+    --se-primary: #0A3D62;
+    --se-charcoal: #111827;
+    --se-muted: #6B7280;
+    --se-bg: #ffffff;
+    --se-surface: #F6F8FB;
+    --se-border: rgba(17, 24, 39, 0.12);
+    --se-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+    --se-shadow-sm: 0 6px 18px rgba(17, 24, 39, 0.10);
+}
+
 html, body {
     max-width: 100%;
     overflow-x: hidden;
@@ -18,7 +29,7 @@ img, video, canvas {
 }
 .navbar{
     min-height: 5rem;
-    background-color: white;
+    background-color: var(--se-bg);
 }
 
 .fa-compass{
@@ -27,7 +38,13 @@ img, video, canvas {
 }
 
 .nav-link{
-    color: #222222 !important;
+    color: var(--se-charcoal) !important;
+    font-weight: 600;
+}
+
+.nav-link:hover,
+.nav-link:focus{
+    color: var(--se-primary) !important;
 }
 /* Footer */
 
@@ -52,7 +69,7 @@ img, video, canvas {
 }
 .f-info{
     text-align: center;
-    background-color: #ebebeb;
+    background-color: var(--se-surface);
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -67,12 +84,21 @@ img, video, canvas {
 }
 /* cards */
 .listing-card{
-    border: none !important;
+    border: 1px solid var(--se-border) !important;
     margin-bottom: 2rem;
+    border-radius: 18px !important;
+    overflow: hidden;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+    transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.listing-card:hover{
+    transform: translateY(-3px);
+    box-shadow: var(--se-shadow-sm);
 }
 
 .card-img-top{
-    border-radius: 1rem !important;
+    border-radius: 0 !important;
     width: 100% !important;
     object-fit: cover !important;
 }
@@ -87,6 +113,10 @@ img, video, canvas {
 
 .listing-link{
     text-decoration: none;
+}
+
+.card-text b{
+    color: var(--se-charcoal);
 }
 
 /* card effect */
