@@ -76,7 +76,8 @@
 
           <div class="dropdown">
             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" type="button">
-              <i class="fa-regular fa-user"></i> <span class="d-none d-sm-inline"><%= currentUser?.username || 'Admin' %></span>
+              <span class="admin-avatar" aria-hidden="true"><%= (currentUser?.username ? String(currentUser.username).charAt(0).toUpperCase() : 'A') %></span>
+              <span class="d-none d-sm-inline"><%= currentUser?.username || 'Admin' %></span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" href="/admin/settings">Settings</a></li>
