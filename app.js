@@ -40,7 +40,7 @@ app.use(methodOverride("_method"));// for using put and delete methods
 app.engine("ejs", ejsMate); //usign ejs-Mate as the template engine
 app.use(cookieParser());
 app.use(
-    express.static(path.join(__dirname, "/public"), {
+    express.static(path.join(__dirname, "public"), {
         maxAge: process.env.NODE_ENV === "production" ? "7d" : 0,
     })
 );
