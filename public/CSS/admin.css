@@ -94,6 +94,13 @@ body.admin-body.admin-dark{
   box-shadow: 0 14px 26px rgba(254,66,77,0.18);
 }
 
+.admin-brand__img{
+  width: 34px;
+  height: 34px;
+  display: block;
+  object-fit: contain;
+}
+
 .admin-brand__text{
   font-weight: 700;
   letter-spacing: 0.3px;

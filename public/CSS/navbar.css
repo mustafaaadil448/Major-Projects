@@ -43,7 +43,10 @@
         height: 52px;
     }
     .se-brand-name{
-        display: none;
+        display: inline-block;
+        font-size: 1.06rem;
+        margin-left: -0.65rem;
+        white-space: nowrap;
     }
 }
 

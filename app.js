@@ -18,6 +18,7 @@ const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 const { verifyTokenString } = require("./utils/jwt.js");
 const router = express.Router({ mergeParams: true });
+const NewsletterSubscriber = require("./models/newsletter.js");
 //
 const dbUrl = process.env.ATLASDB_URL; //database url
 
@@ -107,6 +108,13 @@ app.use((req, res, next) => {
     next();
 });
 
+// Some browser extensions / accidental links may navigate to /back.
+// Provide a safe redirect to referrer (or home) instead of a 404.
+app.get("/back", (req, res) => {
+    const ref = req.get("Referrer") || req.get("Referer");
+    return res.redirect(ref || "/");
+});
+
 //importing the router
 
 // const homeRouter = require("./routes/home.js");
@@ -135,6 +143,40 @@ app.use("/", userRouter);
 // Booking routes
 const bookingRouter = require("./routes/booking.js");
 app.use("/", bookingRouter);
+
+// Newsletter subscription (public)
+app.post("/newsletter", async (req, res, next) => {
+    try {
+        const email = (req.body?.email || "").toString().trim().toLowerCase();
+        if (!email) {
+            throw new ExpressError(400, "Please enter an email address.");
+        }
+
+        // Lightweight email sanity check
+        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        if (!emailOk) {
+            throw new ExpressError(400, "Please enter a valid email address.");
+        }
+
+        await NewsletterSubscriber.updateOne(
+            { email },
+            { $setOnInsert: { email } },
+            { upsert: true }
+        );
+
+        const accept = (req.get("accept") || "").toLowerCase();
+        const wantsJson = accept.includes("application/json") || req.xhr;
+
+        if (wantsJson) {
+            return res.json({ success: true, message: "Subscribed successfully." });
+        }
+
+        req.flash("success", "Subscribed successfully. You’ll receive travel deals & updates.");
+        return res.redirect("back");
+    } catch (err) {
+        return next(err);
+    }
+});
 
 
 main().then(() => {
