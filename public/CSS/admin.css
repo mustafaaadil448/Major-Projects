@@ -89,6 +89,9 @@ body.admin-body.admin-dark{
   height: 38px;
   display: grid;
   place-items: center;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   border-radius: 12px;
   background: linear-gradient(135deg, rgba(254,66,77,0.95), rgba(255,255,255,0.10));
   box-shadow: 0 14px 26px rgba(254,66,77,0.18);
@@ -98,7 +101,10 @@ body.admin-body.admin-dark{
   width: 34px;
   height: 34px;
   display: block;
+  position: relative;
+  z-index: 1;
   object-fit: contain;
+  filter: drop-shadow(0 8px 14px rgba(0,0,0,0.25)) contrast(1.06) brightness(1.06);
 }
 
 .admin-brand__text{
