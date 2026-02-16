@@ -9,3 +9,6 @@ headers.txt
 jar.txt
 jar2.txt
 out.html
+
+# Curl cookie jar (local debug)
+cookies.txt

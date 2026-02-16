@@ -158,8 +158,28 @@ async function main() {
 app.use((err, req, res, next) => {
     let { statusCode=500, message="Something went wrong!" } = err;
 
+    // Always log the real error on the server for debugging.
+    // (Client response stays user-friendly.)
+    if (process.env.NODE_ENV !== "test") {
+        console.error(err);
+    }
+
     const accept = (req.get("accept") || "").toLowerCase();
-    const wantsJson = req.originalUrl?.startsWith?.("/api/") || accept.includes("application/json") || req.xhr;
+    const ua = (req.get("user-agent") || "").toLowerCase();
+
+    const isApiPath = req.originalUrl?.startsWith?.("/api/");
+    const explicitlyJson = accept.includes("application/json");
+    const explicitlyHtml = accept.includes("text/html");
+    const isPostman = ua.includes("postmanruntime");
+
+    // If it's an API path, explicitly asks for JSON, is XHR, or a non-browser client (Postman)
+    // making a non-GET request without explicitly asking for HTML, return JSON.
+    const wantsJson =
+        isApiPath ||
+        explicitlyJson ||
+        req.xhr ||
+        isPostman ||
+        (req.method !== "GET" && !explicitlyHtml);
     if (wantsJson) {
         return res.status(statusCode).json({ success: false, message });
     }

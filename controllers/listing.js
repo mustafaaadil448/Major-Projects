@@ -1,7 +1,8 @@
 const Listing = require("../models/listing");
-const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding'); // ✅ spelling fixed
+const ExpressError = require("../utils/ExpressError.js");
+const mbxGeocoding = require("@mapbox/mapbox-sdk/services/geocoding");
 const mapToken = process.env.MAP_TOKEN;
-const geocodingClient = mbxGeocoding({ accessToken: mapToken }); // ✅ now matches
+const geocodingClient = mbxGeocoding({ accessToken: mapToken });
 
 function escapeRegex(str) {
     return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -84,11 +85,32 @@ module.exports.createListing = async (req, res, next) => {
         req.flash("error", "You must be logged in to create a listing");
         return res.redirect("/login");
     }
-    let response = await geocodingClient.forwardGeocode({
-        query: req.body.listing.location,
-        limit: 1
-    })
-        .send();
+
+    if (!process.env.MAP_TOKEN) {
+        throw new ExpressError(500, "MAP_TOKEN missing. Set MAP_TOKEN in .env to create listings.");
+    }
+
+    const locationQuery = req.body?.listing?.location;
+    if (!locationQuery) {
+        throw new ExpressError(400, "Listing location is required.");
+    }
+
+    let response;
+    try {
+        response = await geocodingClient
+            .forwardGeocode({
+                query: locationQuery,
+                limit: 1,
+            })
+            .send();
+    } catch (e) {
+        throw new ExpressError(502, `Mapbox geocoding failed: ${e.message}`);
+    }
+
+    const firstFeature = response?.body?.features?.[0];
+    if (!firstFeature?.geometry) {
+        throw new ExpressError(400, "Could not find coordinates for the provided location.");
+    }
 
     let url = req.file?.path;      // ✅ safer: cloudinary gives file.path
     let filename = req.file?.filename;
@@ -96,7 +118,7 @@ module.exports.createListing = async (req, res, next) => {
     const newListing = new Listing(req.body.listing);
     newListing.owner = req.user._id;  // ✅ always link owner
     newListing.image = { url, filename };
-    newListing.geometry = response.body.features[0].geometry; // ✅ correct path to geometry
+    newListing.geometry = firstFeature.geometry;
     let saveListing = await newListing.save();
     console.log(saveListing);
     req.flash("success", "New Listing Created!");
