@@ -1,0 +1,139 @@
+<% /* Premium Auth Modal (partial)
+      - Hidden by default
+      - Styled by scoped CSS in public/CSS/authModal.css
+  - Driven by /CSS/js/authModal.js
+*/ %>
+
+<div id="se-auth-overlay" class="se-auth-overlay" aria-hidden="true">
+  <div id="se-auth-panel" class="se-auth-panel" role="dialog" aria-modal="true" aria-label="StayEase authentication">
+    <button type="button" id="se-auth-close" class="se-auth-close" aria-label="Close">✕</button>
+
+    <div class="se-auth-scroll">
+      <div class="se-auth-header">
+        <div class="se-auth-tabs" role="tablist" aria-label="Authentication tabs">
+          <button type="button" data-auth-tab="login" class="se-auth-tab" aria-selected="true">Login</button>
+          <button type="button" data-auth-tab="signup" class="se-auth-tab" aria-selected="false">Sign up</button>
+          <div class="se-auth-tabline" aria-hidden="true"></div>
+          <div id="se-auth-tab-indicator" class="se-auth-indicator" aria-hidden="true"></div>
+        </div>
+
+        <div class="se-auth-title">
+          <div class="se-auth-title-main">Welcome to StayEase</div>
+          <div class="se-auth-title-sub">Log in or sign up using email or mobile OTP</div>
+        </div>
+
+        <div class="se-auth-methods">
+          <div class="se-auth-method-pill" role="group" aria-label="OTP delivery method">
+            <button type="button" data-auth-method="email" class="se-auth-method is-active">Email</button>
+            <button type="button" data-auth-method="phone" class="se-auth-method">Phone</button>
+          </div>
+        </div>
+
+        <div id="se-auth-login-modes" class="se-auth-methods is-hidden">
+          <div class="se-auth-method-pill" role="group" aria-label="Login method">
+            <button type="button" data-auth-mode="otp" class="se-auth-method is-active">OTP</button>
+            <button type="button" data-auth-mode="password" class="se-auth-method">Password</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="se-auth-body">
+        <form id="se-auth-form" class="se-auth-form" novalidate>
+          <input type="hidden" name="tab" id="se-auth-hidden-tab" value="login" />
+          <input type="hidden" name="method" id="se-auth-hidden-method" value="email" />
+          <input type="hidden" name="mode" id="se-auth-hidden-mode" value="otp" />
+
+          <div id="se-auth-alert" class="se-auth-alert is-hidden" role="alert"></div>
+
+          <div id="se-auth-debug" class="se-auth-debug is-hidden" aria-live="polite"></div>
+
+          <div id="se-auth-email-block" class="se-auth-block">
+            <label class="se-auth-label" for="se-auth-email" id="se-auth-email-label">Email</label>
+            <input id="se-auth-email" name="email" type="email" autocomplete="email" class="se-auth-input" />
+          </div>
+
+          <div id="se-auth-username-block" class="se-auth-block is-hidden">
+            <label class="se-auth-label" for="se-auth-username">Username</label>
+            <input id="se-auth-username" name="username" type="text" autocomplete="username" class="se-auth-input" />
+          </div>
+
+          <div id="se-auth-password-block" class="se-auth-block is-hidden">
+            <label class="se-auth-label" for="se-auth-password">Password</label>
+            <input id="se-auth-password" name="password" type="password" autocomplete="current-password" class="se-auth-input" />
+          </div>
+
+          <div id="se-auth-confirm-block" class="se-auth-block is-hidden">
+            <label class="se-auth-label" for="se-auth-confirm">Confirm password</label>
+            <input id="se-auth-confirm" name="confirmPassword" type="password" autocomplete="new-password" class="se-auth-input" />
+          </div>
+
+          <div id="se-auth-phone-block" class="se-auth-block is-hidden">
+            <div class="se-auth-grid">
+              <div>
+                <label class="se-auth-label" for="se-auth-country">Code</label>
+                <select id="se-auth-country" name="countryCode" class="se-auth-select">
+                  <option value="+91" selected>+91</option>
+                  <option value="+1">+1</option>
+                  <option value="+44">+44</option>
+                  <option value="+971">+971</option>
+                </select>
+              </div>
+              <div>
+                <label class="se-auth-label" for="se-auth-phone">Mobile number</label>
+                <input id="se-auth-phone" name="phone" inputmode="numeric" autocomplete="tel" class="se-auth-input" />
+              </div>
+            </div>
+          </div>
+
+          <div id="se-auth-role" class="se-auth-role is-hidden">
+            <div class="se-auth-role-title">Account type</div>
+            <div class="se-auth-role-grid">
+              <label class="se-auth-role-card">
+                <input type="radio" name="role" value="user" class="se-auth-sr" checked />
+                <div class="se-auth-role-name">User</div>
+                <div class="se-auth-role-desc">Book stays</div>
+              </label>
+              <label class="se-auth-role-card">
+                <input type="radio" name="role" value="admin" class="se-auth-sr" />
+                <div class="se-auth-role-name">Admin</div>
+                <div class="se-auth-role-desc">List & manage properties</div>
+              </label>
+            </div>
+            <div id="se-auth-admin-hint" class="se-auth-hint is-hidden">Admin accounts require additional verification</div>
+          </div>
+
+          <div id="se-auth-otp" class="se-auth-otp is-hidden">
+            <div class="se-auth-otp-title">Enter 6-digit OTP</div>
+            <div class="se-auth-otp-grid">
+              <% for (let i = 0; i < 6; i++) { %>
+                <input data-otp-box class="se-auth-otp-box" inputmode="numeric" maxlength="1" />
+              <% } %>
+            </div>
+
+            <div class="se-auth-otp-meta">
+              <div class="se-auth-otp-timer">Resend in <span id="se-auth-timer" class="se-auth-otp-timerValue">30s</span></div>
+              <button type="button" id="se-auth-resend" class="se-auth-link" disabled>Resend OTP</button>
+            </div>
+          </div>
+
+          <button type="submit" id="se-auth-primary" class="se-auth-primary">Send OTP</button>
+
+          <div class="se-auth-social" aria-label="Social sign-in options">
+            <button type="button" class="se-auth-social-btn" data-social-provider="google" aria-label="Continue with Google">
+              <span class="se-auth-social-ic" aria-hidden="true"><i class="fa-brands fa-google"></i></span>
+              <span class="se-auth-social-txt">Continue with Google</span>
+            </button>
+            <button type="button" class="se-auth-social-btn" data-social-provider="apple" aria-label="Continue with Apple">
+              <span class="se-auth-social-ic" aria-hidden="true"><i class="fa-brands fa-apple"></i></span>
+              <span class="se-auth-social-txt">Continue with Apple</span>
+            </button>
+            <button type="button" class="se-auth-social-btn" data-social-provider="facebook" aria-label="Continue with Facebook">
+              <span class="se-auth-social-ic" aria-hidden="true"><i class="fa-brands fa-facebook"></i></span>
+              <span class="se-auth-social-txt">Continue with Facebook</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
