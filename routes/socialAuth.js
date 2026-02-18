@@ -24,8 +24,9 @@ function setAuthCookie(req, res, token) {
     });
 }
 
-function safeHomeRedirect(res) {
-    return res.redirect("/");
+function safeHomeRedirect(res, opts) {
+    const openAuth = opts && opts.openAuth;
+    return res.redirect(openAuth ? "/?auth=login" : "/");
 }
 
 function isGoogleConfigured() {
@@ -37,47 +38,47 @@ function isFacebookConfigured() {
 }
 
 router.get("/auth/google", (req, res, next) => {
-    if (!isGoogleConfigured()) return safeHomeRedirect(res);
+    if (!isGoogleConfigured()) return safeHomeRedirect(res, { openAuth: true });
     return passport.authenticate("google", { scope: ["profile", "email"], prompt: "select_account" })(req, res, next);
 });
 
 router.get(
     "/auth/google/callback",
     (req, res, next) => {
-        if (!isGoogleConfigured()) return safeHomeRedirect(res);
-        return passport.authenticate("google", { failureRedirect: "/" })(req, res, next);
+        if (!isGoogleConfigured()) return safeHomeRedirect(res, { openAuth: true });
+        return passport.authenticate("google", { failureRedirect: "/?auth=login" })(req, res, next);
     },
     (req, res) => {
         try {
-            if (!req.user) return safeHomeRedirect(res);
+            if (!req.user) return safeHomeRedirect(res, { openAuth: true });
             const token = signToken(req.user);
             setAuthCookie(req, res, token);
             return safeHomeRedirect(res);
         } catch (e) {
-            return safeHomeRedirect(res);
+            return safeHomeRedirect(res, { openAuth: true });
         }
     }
 );
 
 router.get("/auth/facebook", (req, res, next) => {
-    if (!isFacebookConfigured()) return safeHomeRedirect(res);
+    if (!isFacebookConfigured()) return safeHomeRedirect(res, { openAuth: true });
     return passport.authenticate("facebook", { scope: ["email"] })(req, res, next);
 });
 
 router.get(
     "/auth/facebook/callback",
     (req, res, next) => {
-        if (!isFacebookConfigured()) return safeHomeRedirect(res);
-        return passport.authenticate("facebook", { failureRedirect: "/" })(req, res, next);
+        if (!isFacebookConfigured()) return safeHomeRedirect(res, { openAuth: true });
+        return passport.authenticate("facebook", { failureRedirect: "/?auth=login" })(req, res, next);
     },
     (req, res) => {
         try {
-            if (!req.user) return safeHomeRedirect(res);
+            if (!req.user) return safeHomeRedirect(res, { openAuth: true });
             const token = signToken(req.user);
             setAuthCookie(req, res, token);
             return safeHomeRedirect(res);
         } catch (e) {
-            return safeHomeRedirect(res);
+            return safeHomeRedirect(res, { openAuth: true });
         }
     }
 );
@@ -85,7 +86,7 @@ router.get(
 // Apple placeholder: route exists so the button can be wired now,
 // but real Apple Sign-In will be added later.
 router.get("/auth/apple", (_req, res) => {
-    return safeHomeRedirect(res);
+    return safeHomeRedirect(res, { openAuth: true });
 });
 
 module.exports = router;
