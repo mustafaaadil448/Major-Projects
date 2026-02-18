@@ -294,6 +294,29 @@ app.get("/back", (req, res) => {
     return res.redirect(ref || "/");
 });
 
+// data deletion route (PUBLIC)
+app.get("/data-deletion", (req, res) => {
+    res.status(200).send(`
+        <html>
+            <head>
+                <title>Data Deletion Instructions - StayEase</title>
+            </head>
+            <body style="font-family: Arial; padding: 40px;">
+                <h2>Data Deletion Instructions</h2>
+                <p>
+                    If you want your data deleted from StayEase, please email us at:
+                </p>
+                <p>
+                    <strong>mustafaaadil3326@gmail.com</strong>
+                </p>
+                <p>
+                    We will process your request within 7 working days.
+                </p>
+            </body>
+        </html>
+    `);
+});
+
 //importing the router
 
 // const homeRouter = require("./routes/home.js");
@@ -306,10 +329,6 @@ app.use("/", adminRouter);
 // Payment APIs (Razorpay)
 const paymentRouter = require("./routes/payment.js");
 app.use("/api/payment", paymentRouter);
-
-// Legal / compliance routes (public)
-const legalRouter = require("./routes/legal.js");
-app.use("/", legalRouter);
 
 const listingRouter = require("./routes/listing.js");
 app.use("/", listingRouter);
