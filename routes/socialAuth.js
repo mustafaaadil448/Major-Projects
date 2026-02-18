@@ -62,7 +62,7 @@ router.get(
 
 router.get("/auth/facebook", (req, res, next) => {
     if (!isFacebookConfigured()) return safeHomeRedirect(res, { openAuth: true });
-    return passport.authenticate("facebook", { scope: ["email"] })(req, res, next);
+    return passport.authenticate("facebook", { scope: ["public_profile", "email"] })(req, res, next);
 });
 
 router.get(
