@@ -307,6 +307,10 @@ app.use("/", adminRouter);
 const paymentRouter = require("./routes/payment.js");
 app.use("/api/payment", paymentRouter);
 
+// Legal / compliance routes (public)
+const legalRouter = require("./routes/legal.js");
+app.use("/", legalRouter);
+
 const listingRouter = require("./routes/listing.js");
 app.use("/", listingRouter);
 
