@@ -62,11 +62,17 @@ router.get(
 
 router.get("/auth/facebook", (req, res, next) => {
     if (!isFacebookConfigured()) return safeHomeRedirect(res, { openAuth: true });
+    const supported = new Set(["public_profile", "email"]);
     const scopeRaw = (process.env.FACEBOOK_SCOPES || "public_profile").toString();
-    const scope = scopeRaw
+    const parsed = scopeRaw
         .split(/[\s,]+/)
         .map((s) => s.trim())
-        .filter(Boolean);
+        .filter(Boolean)
+        // Handles values like ["public_profile","email"] or ['public_profile']
+        .map((s) => s.replace(/[^a-z_]/gi, "").toLowerCase())
+        .filter((s) => supported.has(s));
+
+    const scope = Array.from(new Set(["public_profile", ...parsed]));
     return passport.authenticate("facebook", { scope })(req, res, next);
 });
 
