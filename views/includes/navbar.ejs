@@ -35,8 +35,8 @@
                     <% } %>
 
                     <% if (!currentUser) { %>
-                        <a class="se-btn-ghost" href="/login">Log in</a>
-                        <a class="se-btn-solid" href="/signup">Sign up</a>
+                        <a class="se-btn-ghost" href="/?auth=login" data-auth-open="login">Log in</a>
+                        <a class="se-btn-solid" href="/?auth=signup" data-auth-open="signup">Sign up</a>
                     <% } %>
 
                     <% if (currentUser) { %>
