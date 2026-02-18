@@ -377,6 +377,7 @@
    window.StayEaseAuth = { open, close };
  
    // Navbar triggers: <a data-auth-open="login|signup" href="/login|/signup">
+   // Use capture phase to win against other handlers and ensure navigation is prevented.
    document.addEventListener('click', (e) => {
      const target = e.target;
      const trigger = target && target.closest ? target.closest('[data-auth-open]') : null;
@@ -384,7 +385,7 @@
  
      e.preventDefault();
      open(trigger.getAttribute('data-auth-open'));
-   });
+   }, true);
  
    tabButtons.forEach((btn) => {
      btn.addEventListener('click', () => setTab(btn.getAttribute('data-auth-tab')));
@@ -415,6 +416,13 @@
        open(auth);
      }
    } catch (e) {}
+
+  // Also auto-open on dedicated routes so the upgraded modal is visible there.
+  try {
+    const p = String(window.location.pathname || '');
+    if (p === '/login') open('login');
+    if (p === '/signup') open('signup');
+  } catch (e) {}
  
    // Defaults
    setTab(hiddenTab && hiddenTab.value ? hiddenTab.value : 'login');
