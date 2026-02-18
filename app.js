@@ -17,6 +17,7 @@ const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
+const socialAuthRoutes = require("./routes/socialAuth.js");
 const { verifyTokenString } = require("./utils/jwt.js");
 const { signToken } = require("./utils/jwt.js");
 const router = express.Router({ mergeParams: true });
@@ -91,6 +92,9 @@ passport.use(new LocalStrategy(User.authenticate()));
 
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
+
+// Social auth routes (Google/Facebook/Apple placeholder)
+app.use(socialAuthRoutes);
 
 // If no passport session user exists, try to hydrate from JWT cookie.
 app.use(async (req, res, next) => {

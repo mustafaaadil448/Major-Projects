@@ -444,8 +444,10 @@
     socialButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
         const provider = String(btn.getAttribute('data-social-provider') || '').toLowerCase();
-        showAlert('');
-        showDebug(`Social login (${provider || 'provider'}) is not connected yet.`);
+        // Redirect to backend OAuth routes (no UI changes).
+        if (provider === 'google') window.location.href = '/auth/google';
+        else if (provider === 'facebook') window.location.href = '/auth/facebook';
+        else if (provider === 'apple') window.location.href = '/auth/apple';
       });
     });
   }
