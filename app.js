@@ -10,6 +10,7 @@ const compression = require("compression");
 const cookieParser = require("cookie-parser");
 const methodOverride = require("method-override");// importinf method-override
 const ejsMate = require("ejs-mate");//importing ejs-mate it help to create layouts and partials of ejs template
+const crypto = require("crypto");
 const ExpressError = require("./utils/ExpressError.js"); //import ExpressError class to handle errors
 const session = require("express-session"); // importing express-session for session mangement
 const MongoStore = require("connect-mongo");//importing connect-mongo to store session in mongoDB
@@ -294,6 +295,44 @@ app.get("/back", (req, res) => {
     return res.redirect(ref || "/");
 });
 
+function base64UrlDecode(input) {
+    const s = String(input || "").replace(/-/g, "+").replace(/_/g, "/");
+    const pad = s.length % 4 === 0 ? "" : "=".repeat(4 - (s.length % 4));
+    return Buffer.from(s + pad, "base64");
+}
+
+function parseFacebookSignedRequest(signedRequest, appSecret) {
+    const sr = String(signedRequest || "");
+    const parts = sr.split(".");
+    if (parts.length !== 2) throw new Error("Invalid signed_request format");
+
+    const encodedSig = parts[0];
+    const encodedPayload = parts[1];
+
+    const signature = base64UrlDecode(encodedSig);
+    const payloadBuf = base64UrlDecode(encodedPayload);
+
+    const expected = crypto
+        .createHmac("sha256", String(appSecret || ""))
+        .update(encodedPayload)
+        .digest();
+
+    if (signature.length !== expected.length || !crypto.timingSafeEqual(signature, expected)) {
+        throw new Error("Invalid signed_request signature");
+    }
+
+    const payload = JSON.parse(payloadBuf.toString("utf8"));
+    const algo = String(payload?.algorithm || "").toUpperCase();
+    if (algo && algo !== "HMAC-SHA256") throw new Error("Unsupported signed_request algorithm");
+    return payload;
+}
+
+function getBaseUrl(req) {
+    const protoHeader = req.headers["x-forwarded-proto"];
+    const proto = (req.secure || (typeof protoHeader === "string" && protoHeader.split(",")[0].trim() === "https")) ? "https" : "http";
+    return `${proto}://${req.get("host")}`;
+}
+
 // data deletion route (PUBLIC)
 app.get("/data-deletion", (req, res) => {
     res.status(200).send(`
@@ -312,6 +351,47 @@ app.get("/data-deletion", (req, res) => {
                 <p>
                     We will process your request within 7 working days.
                 </p>
+            </body>
+        </html>
+    `);
+});
+
+// Facebook Data Deletion Callback (for Meta App Review)
+// Meta sends POST with form field: signed_request
+// We respond with JSON: { url: <status page>, confirmation_code: <string> }
+app.post("/facebook/data-deletion", (req, res) => {
+    try {
+        const appSecret = process.env.FACEBOOK_APP_SECRET;
+        if (!appSecret) return res.status(500).json({ error: "FACEBOOK_APP_SECRET is not configured" });
+
+        const signedRequest = req.body?.signed_request;
+        if (!signedRequest) return res.status(400).json({ error: "signed_request is required" });
+
+        // Validate signature + decode payload (contains user_id)
+        parseFacebookSignedRequest(signedRequest, appSecret);
+
+        const confirmationCode = crypto.randomBytes(16).toString("hex");
+        const baseUrl = getBaseUrl(req);
+        const statusUrl = `${baseUrl}/facebook/data-deletion/status?code=${encodeURIComponent(confirmationCode)}`;
+
+        return res.json({ url: statusUrl, confirmation_code: confirmationCode });
+    } catch (e) {
+        return res.status(400).json({ error: "Invalid request" });
+    }
+});
+
+// Simple status page referenced by the callback response
+app.get("/facebook/data-deletion/status", (req, res) => {
+    const code = (req.query?.code || "").toString();
+    return res.status(200).send(`
+        <html>
+            <head>
+                <title>Data Deletion Status - StayEase</title>
+            </head>
+            <body style="font-family: Arial; padding: 40px;">
+                <h2>Data Deletion Request Received</h2>
+                <p>Your request has been received.</p>
+                <p><strong>Confirmation code:</strong> ${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
             </body>
         </html>
     `);

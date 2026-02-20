@@ -10,17 +10,24 @@ router.route("/signup")
     .get(userController.renderSignupForm)
     .post(wrapAsync(userController.signup));
 
+// Password auth (JSON) - used by the auth modal
+router.post("/api/auth/password-signup", wrapAsync(userController.signupPasswordJson));
+
     //login routes combined
     router.route("/login")
     .get(userController.renderLoginForm)
     .post(
     saveRedirectUrl,
+        wrapAsync(userController.coerceEmailToUsername),
     passport.authenticate("local", {
         failureRedirect: "/login",
         failureFlash: true,
     }),
         wrapAsync(userController.login)
     );
+
+    // Password auth (JSON) - used by the auth modal
+    router.post("/api/auth/password-login", wrapAsync(userController.loginPasswordJson));
 
 
     // logout user route

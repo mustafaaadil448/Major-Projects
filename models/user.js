@@ -5,7 +5,15 @@ const passportLocalMongoose = require("passport-local-mongoose");
 const userSchema = new Schema({
     email: {
         type: String,
-        required: true,
+        default: null,
+    },
+    phone: {
+        type: String,
+        default: null,
+    },
+    countryCode: {
+        type: String,
+        default: null,
     },
     role: {
         type: String,
@@ -16,6 +24,15 @@ const userSchema = new Schema({
         type: Boolean,
         default: false,
     },
+});
+
+userSchema.pre("validate", function (next) {
+    const hasEmail = Boolean(this.email && String(this.email).trim());
+    const hasPhone = Boolean(this.phone && String(this.phone).trim());
+    if (!hasEmail && !hasPhone) {
+        this.invalidate("email", "Email or phone is required.");
+    }
+    next();
 });
 userSchema.plugin(passportLocalMongoose);
 

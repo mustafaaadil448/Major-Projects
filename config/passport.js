@@ -96,7 +96,11 @@ function configureSocialPassport() {
                 async (_accessToken, _refreshToken, profile, done) => {
                     try {
                         const emails = Array.isArray(profile?.emails) ? profile.emails : [];
-                        const email = emails[0]?.value ? String(emails[0].value).trim().toLowerCase() : "";
+                        const rawEmail = emails[0]?.value ? String(emails[0].value).trim().toLowerCase() : "";
+                        const facebookId = profile?.id ? String(profile.id).trim() : "";
+                        // Some Meta apps/configs do not return email even when requested.
+                        // Use a stable placeholder to satisfy our schema validation.
+                        const email = rawEmail || (facebookId ? `fb_${facebookId}@facebook.local` : "");
                         if (!email) return done(null, false);
 
                         let user = await User.findOne({ email });
