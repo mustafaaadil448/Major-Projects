@@ -19,13 +19,24 @@
 
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.js" defer></script>
 </head>
-<body>
-    <%- include("../includes/navbar.ejs") %>
+<%
+        const headerVariantSafe = (typeof headerVariant !== 'undefined' && headerVariant) ? headerVariant : 'default';
+        const footerVariantSafe = (typeof footerVariant !== 'undefined' && footerVariant) ? footerVariant : 'full';
+        const bodyClassSafe = (typeof bodyClass !== 'undefined' && bodyClass) ? bodyClass : '';
+%>
+<body class="<%= bodyClassSafe %>">
+        <%- include("../includes/navbar.ejs", { navbarMinimal: headerVariantSafe === 'minimal' }) %>
     <div class="container">
         <%- include("../includes/flash.ejs") %>
         <%- body %>
     </div>
-    <%- include("../includes/footer.ejs") %>
+        <% if (footerVariantSafe === 'none') { %>
+            <!-- no footer -->
+        <% } else if (footerVariantSafe === 'compact') { %>
+            <%- include("../includes/footer-compact.ejs") %>
+        <% } else { %>
+            <%- include("../includes/footer.ejs") %>
+        <% } %>
 
     <%- include("../partials/auth-modal") %>
 

@@ -1,4 +1,6 @@
-<nav class="navbar navbar-expand-lg se-navbar sticky-top" aria-label="Primary">
+<% const navbarMinimalSafe = (typeof navbarMinimal !== 'undefined') && !!navbarMinimal; %>
+
+<nav class="navbar navbar-expand-lg se-navbar sticky-top <%= navbarMinimalSafe ? 'se-navbar--minimal' : '' %>" aria-label="Primary">
     <div class="container-fluid se-navbar-inner">
         <a class="navbar-brand se-brand" href="/" aria-label="StayEase">
             <img class="brand-logo" src="/assets/stayease.png" alt="StayEase" />
@@ -30,7 +32,7 @@
                     <% if (currentUser && currentUser.role === 'user') { %>
                         <a class="se-btn-outline" href="/bookings">My Bookings</a>
                     <% } %>
-                    <% if (currentUser && currentUser.role === 'admin') { %>
+                    <% if (!navbarMinimalSafe && currentUser && currentUser.role === 'admin') { %>
                         <a class="se-btn-outline" href="/admin">Admin</a>
                     <% } %>
 
@@ -57,9 +59,11 @@
                             </ul>
                         </div>
 
-                        <a class="se-logout" href="/logout" aria-label="Log out" title="Log out">
-                            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
-                        </a>
+                        <% if (!navbarMinimalSafe) { %>
+                            <a class="se-logout" href="/logout" aria-label="Log out" title="Log out">
+                                <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+                            </a>
+                        <% } %>
                     <% } %>
                 </div>
             </div>

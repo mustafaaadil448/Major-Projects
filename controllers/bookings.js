@@ -62,7 +62,13 @@ module.exports.indexMyBookings = async (req, res) => {
 
     const bookings = await q.lean();
 
-    res.render("bookings/index.ejs", { bookings, isAdmin });
+    res.render("bookings/index.ejs", {
+        bookings,
+        isAdmin,
+        headerVariant: "minimal",
+        footerVariant: "compact",
+        bodyClass: "page-bookings",
+    });
 };
 
 module.exports.cancelBooking = async (req, res) => {

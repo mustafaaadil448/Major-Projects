@@ -1,11 +1,27 @@
 /* My Trips dashboard (Bootstrap-first, premium look, no new brand colors) */
 
+body.page-bookings {
+  background: rgb(var(--bs-body-bg-rgb));
+}
+
+/* Minimal header tweaks for transactional pages */
+body.page-bookings .se-navbar--minimal {
+  box-shadow: none;
+  border-bottom: 1px solid rgba(var(--bs-body-color-rgb), 0.08);
+}
+
 .trips-wrap {
   --trips-radius: var(--bs-border-radius-xl, 1rem);
+  padding-bottom: 2.25rem;
 }
 
 .trips-header h2 {
   line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.trips-header .text-muted {
+  max-width: 46rem;
 }
 
 .trips-toolbar {
@@ -23,13 +39,13 @@
   border-radius: var(--trips-radius);
   border: 1px solid rgba(var(--bs-body-color-rgb), 0.08);
   box-shadow: 0 .5rem 1.25rem rgba(0, 0, 0, 0.06);
-  transition: transform .18s ease, box-shadow .18s ease;
+  transition: box-shadow .18s ease, border-color .18s ease;
   overflow: hidden;
 }
 
 .trip-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 .75rem 1.75rem rgba(0, 0, 0, 0.09);
+  box-shadow: 0 .65rem 1.65rem rgba(0, 0, 0, 0.08);
+  border-color: rgba(var(--bs-body-color-rgb), 0.12);
 }
 
 .trip-thumb {
@@ -48,6 +64,96 @@
   padding: .45rem .7rem;
   font-weight: 600;
   border: 1px solid rgba(var(--bs-body-color-rgb), 0.12);
+}
+
+/* Page-specific typography hierarchy */
+.booking-title {
+  font-weight: 700;
+  font-size: 1.35rem;
+  line-height: 1.15;
+}
+
+.booking-title__link {
+  color: inherit;
+  text-decoration: none;
+  transition: color .15s ease, text-decoration-color .15s ease;
+}
+
+.booking-card:hover .booking-title__link {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.booking-subtext {
+  color: rgba(var(--bs-body-color-rgb), 0.62);
+}
+
+.booking-id {
+  font-size: 0.92rem;
+}
+
+.booking-price__label {
+  font-size: 0.82rem;
+  color: rgba(var(--bs-body-color-rgb), 0.58);
+}
+
+.booking-price__value {
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+.booking-facts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .85rem;
+  padding-top: .25rem;
+}
+
+.booking-fact {
+  padding: .85rem 1rem;
+  border-radius: calc(var(--trips-radius) - 6px);
+  background: rgba(var(--bs-body-bg-rgb), 0.9);
+  border: 1px solid rgba(var(--bs-body-color-rgb), 0.07);
+}
+
+.booking-fact__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(var(--bs-body-color-rgb), 0.62);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.booking-fact__value {
+  font-weight: 700;
+  margin-top: .25rem;
+}
+
+.booking-fact__meta {
+  font-size: 0.9rem;
+  color: rgba(var(--bs-body-color-rgb), 0.62);
+  margin-top: .15rem;
+}
+
+.booking-actions {
+  align-self: flex-start;
+}
+
+.booking-btn {
+  border-radius: 999px;
+  padding: .7rem 1.05rem;
+  transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease;
+}
+
+.booking-btn:active {
+  transform: translateY(1px);
+}
+
+.booking-btn--dark {
+  box-shadow: 0 .4rem 1rem rgba(0, 0, 0, 0.08);
 }
 
 /* Use Bootstrap contextual colors, but soften them */
@@ -125,4 +231,44 @@
   .trips-toolbar {
     top: 70px;
   }
+}
+
+@media (min-width: 992px) {
+  .booking-facts {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Compact footer for transactional pages */
+.se-footer-compact {
+  margin-top: 2.5rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid rgba(var(--bs-body-color-rgb), 0.08);
+  background: rgba(var(--bs-body-bg-rgb), 0.9);
+}
+
+.se-footer-compact__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: rgba(var(--bs-body-color-rgb), 0.68);
+  font-size: 0.95rem;
+}
+
+.se-footer-compact__right {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex-wrap: wrap;
+}
+
+.se-footer-compact a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.se-footer-compact a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
