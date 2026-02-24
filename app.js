@@ -240,13 +240,30 @@ async function sendOtpEmail(toEmail, otp) {
     const from = process.env.OTP_FROM_EMAIL || process.env.SMTP_USER;
     const brand = process.env.OTP_BRAND || "StayEase";
 
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
         from,
         to: toEmail,
         subject: `${brand} OTP: ${otp}`,
         text: `Your ${brand} OTP is ${otp}. It expires in 5 minutes.`,
         html: `<p>Your <b>${brand}</b> OTP is <b style="font-size:18px">${otp}</b>.</p><p>It expires in 5 minutes.</p>`,
     });
+
+    return info;
+}
+
+function shouldLogOtpDelivery() {
+    return String(process.env.OTP_LOG_DELIVERY || "").toLowerCase() === "true";
+}
+
+function summarizeMailInfo(info) {
+    const accepted = Array.isArray(info?.accepted) ? info.accepted : [];
+    const rejected = Array.isArray(info?.rejected) ? info.rejected : [];
+    return {
+        messageId: info?.messageId || null,
+        acceptedCount: accepted.length,
+        rejectedCount: rejected.length,
+        response: info?.response || null,
+    };
 }
 
 function hasTwilioConfig() {
@@ -541,8 +558,16 @@ app.post("/send-otp", async (req, res) => {
                 if (smtpHint) return jsonFail(res, 500, smtpHint);
                 delivery.attempted = true;
                 delivery.provider = "smtp";
-                await sendOtpEmail(email, otp);
+                const info = await sendOtpEmail(email, otp);
                 delivery.sent = true;
+
+                if (shouldLogOtpDelivery()) {
+                    console.log("[OTP][EMAIL]", {
+                        to: maskEmail(email),
+                        provider: "smtp",
+                        meta: summarizeMailInfo(info),
+                    });
+                }
             } else if (isProd) {
                 const missing = getMissingSmtpKeys();
                 const suffix = missing.length ? ` Missing: ${missing.join(", ")}` : "";
