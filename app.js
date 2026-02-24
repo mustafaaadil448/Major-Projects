@@ -75,10 +75,15 @@ const sessionOptions = {
     store,
     resave: false,
     saveUninitialized: false,
+    proxy: process.env.NODE_ENV === "production",
     cookie: {
         expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
         maxAge: 7 * 24 * 60 * 60 * 1000,
         httpOnly: true,
+        sameSite: "lax",
+        // When deployed behind HTTPS (Render/Vercel proxy), this prevents the
+        // session cookie from being dropped. In dev (http), keep it non-secure.
+        secure: process.env.NODE_ENV === "production" ? "auto" : false,
     },
 };
 
@@ -204,11 +209,23 @@ function validateSmtpConfigForHost() {
     return "";
 }
 
+function saveSession(req) {
+    return new Promise((resolve, reject) => {
+        if (!req?.session || typeof req.session.save !== "function") return resolve();
+        req.session.save((err) => (err ? reject(err) : resolve()));
+    });
+}
+
 async function sendOtpEmail(toEmail, otp) {
+    const port = Number(process.env.SMTP_PORT);
+    const secure = process.env.SMTP_SECURE
+        ? String(process.env.SMTP_SECURE).toLowerCase() === "true"
+        : port === 465;
+
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT),
-        secure: String(process.env.SMTP_SECURE || "").toLowerCase() === "true",
+        port,
+        secure,
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
@@ -502,6 +519,10 @@ app.post("/send-otp", async (req, res) => {
             verifiedAt: null,
         };
 
+        // Ensure OTP is persisted before we reply (avoids race conditions
+        // where the very next request can't see req.session.seOtp in prod).
+        await saveSession(req);
+
         // Optional real delivery
         const isProd = process.env.NODE_ENV === "production";
         const delivery = {
@@ -545,7 +566,7 @@ app.post("/send-otp", async (req, res) => {
         const hint = explainSmtpError(e);
         const details = String(e?.message || e || "").trim();
         const message = isProd
-            ? "Unable to send OTP."
+            ? `Unable to send OTP.${hint ? " " + hint : ""}`
             : `Unable to send OTP. ${hint || details}`.trim();
         return jsonFail(res, 500, message);
     }
@@ -569,6 +590,7 @@ app.post("/verify-otp-signup", async (req, res) => {
         record.verified = true;
         record.verifiedAt = Date.now();
         req.session.seOtp = record;
+        await saveSession(req);
         return jsonOk(res, { verified: true });
     } catch (e) {
         return jsonFail(res, 500, "Unable to verify OTP.");
@@ -608,6 +630,7 @@ app.post("/complete-signup", async (req, res) => {
             const token = signToken(user);
             setAuthCookie(req, res, token);
             req.session.seOtp = null;
+            await saveSession(req);
             return jsonOk(res, { userId: user._id.toString(), role: user.role });
         }
 
@@ -623,6 +646,7 @@ app.post("/complete-signup", async (req, res) => {
         const token = signToken(user);
         setAuthCookie(req, res, token);
         req.session.seOtp = null;
+        await saveSession(req);
         return jsonOk(res, { userId: user._id.toString(), role: user.role });
     } catch (e) {
         const message = String(e?.message || "Unable to sign up.");
@@ -681,8 +705,8 @@ app.post("/verify-otp", async (req, res) => {
         // Issue JWT cookie so the app treats user as logged in
         const token = signToken(user);
         setAuthCookie(req, res, token);
-
         req.session.seOtp = null;
+        await saveSession(req);
         return jsonOk(res, { userId: user._id.toString(), role: user.role });
     } catch (e) {
         return jsonFail(res, 500, "Unable to verify OTP.");
