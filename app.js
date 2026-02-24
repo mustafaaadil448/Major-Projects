@@ -193,6 +193,11 @@ function hasSmtpConfig() {
     return Boolean(process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS);
 }
 
+function getMissingSmtpKeys() {
+    const required = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"];
+    return required.filter((k) => !process.env[k]);
+}
+
 function validateSmtpConfigForHost() {
     const host = String(process.env.SMTP_HOST || "").toLowerCase();
     if (!host) return "";
@@ -539,7 +544,9 @@ app.post("/send-otp", async (req, res) => {
                 await sendOtpEmail(email, otp);
                 delivery.sent = true;
             } else if (isProd) {
-                return jsonFail(res, 500, "Email OTP delivery is not configured on the server.");
+                const missing = getMissingSmtpKeys();
+                const suffix = missing.length ? ` Missing: ${missing.join(", ")}` : "";
+                return jsonFail(res, 500, `Email OTP delivery is not configured on the server.${suffix}`);
             }
         } else {
             // Prefer MSG91 for India routing when configured; fallback to Twilio if present.
