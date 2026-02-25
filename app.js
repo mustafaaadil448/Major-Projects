@@ -229,15 +229,41 @@ function explainSessionSaveError(err) {
     return "";
 }
 
+function getErrorCodeDeep(err) {
+    const direct = err?.code ?? err?.status ?? err?.statusCode ?? err?.responseCode;
+    if (direct !== undefined && direct !== null && direct !== "") return String(direct);
+    const cause = err?.cause;
+    if (cause && typeof cause === "object") {
+        const deep = getErrorCodeDeep(cause);
+        if (deep) return deep;
+    }
+    return null;
+}
+
+function getErrorMessageDeep(err) {
+    const msg = String(err?.message || "").trim();
+    if (msg) return msg;
+    const cause = err?.cause;
+    if (cause && typeof cause === "object") {
+        const deep = getErrorMessageDeep(cause);
+        if (deep) return deep;
+    }
+    return "";
+}
+
 function summarizeOtpProviderError(err) {
-    const msg = String(err?.message || "");
+    const msg = String(err?.message || "") || getErrorMessageDeep(err);
     const name = String(err?.name || "");
-    const code = err?.code ?? err?.status ?? err?.statusCode ?? err?.responseCode;
+    const code = getErrorCodeDeep(err);
+
+    const msgLower = String(msg || "").toLowerCase();
+    const stackLower = String(err?.stack || "").toLowerCase();
+    const hay = `${msgLower}\n${stackLower}`;
 
     let provider = null;
-    if (/msg91/i.test(msg) || /msg91/i.test(name)) provider = "msg91";
-    else if (/twilio/i.test(msg) || /twilio/i.test(name)) provider = "twilio";
-    else if (/smtp|nodemailer|EAUTH|ESOCKET|ETIMEDOUT|ECONN/i.test(msg) || /smtp|nodemailer/i.test(name)) provider = "smtp";
+    if (/msg91/i.test(msg) || /msg91/i.test(name) || hay.includes("control.msg91.com")) provider = "msg91";
+    else if (/twilio/i.test(msg) || /twilio/i.test(name) || hay.includes("twilio.com")) provider = "twilio";
+    else if (/smtp|nodemailer|eauth|esocket|etimedout|econn|tls|certificate/i.test(hay) || /smtp|nodemailer/i.test(name)) provider = "smtp";
 
     return {
         provider,
@@ -322,13 +348,21 @@ async function sendOtpSmsMsg91(countryCode, phoneDigits, otp) {
     if (process.env.MSG91_REALTIME) params.set("realTimeResponse", String(process.env.MSG91_REALTIME));
 
     const url = `https://control.msg91.com/api/v5/otp?${params.toString()}`;
-    const res = await fetch(url, {
-        method: "POST",
-        headers: {
-            authkey: String(process.env.MSG91_AUTH_KEY),
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-    });
+    let res;
+    try {
+        res = await fetch(url, {
+            method: "POST",
+            headers: {
+                authkey: String(process.env.MSG91_AUTH_KEY),
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+        });
+    } catch (err) {
+        const code = getErrorCodeDeep(err);
+        const details = getErrorMessageDeep(err) || String(err || "");
+        const suffix = code ? ` (code=${code})` : "";
+        throw new Error(`MSG91 OTP send failed${suffix}. ${details}`.trim());
+    }
 
     const text = await res.text().catch(() => "");
     if (!res.ok) {
@@ -641,7 +675,9 @@ app.post("/send-otp", async (req, res) => {
         const details = String(e?.message || e || "").trim();
         const sessionHint = explainSessionSaveError(e);
         const providerMeta = summarizeOtpProviderError(e);
+        const channel = (typeof method === "string" && method.toLowerCase() === "phone") ? "sms" : "email";
         const metaBits = [
+            `channel=${channel}`,
             providerMeta.provider ? `provider=${providerMeta.provider}` : "",
             providerMeta.code ? `code=${providerMeta.code}` : "",
         ].filter(Boolean);
