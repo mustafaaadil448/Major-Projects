@@ -183,7 +183,16 @@ function explainSmtpError(err) {
     }
 
     if (/ETIMEDOUT|ECONNRESET|ENOTFOUND|ECONNREFUSED/i.test(raw)) {
-        return "SMTP connection failed. Check SMTP_HOST/SMTP_PORT and your network/firewall settings.";
+        if (isGmail) {
+            return (
+                "SMTP connection failed (timeout/network). If you are deploying on Render/Vercel/etc, outbound SMTP to Gmail may be blocked or unreliable. " +
+                "Try Gmail on port 465 with SMTP_SECURE=true, or use a transactional SMTP provider like Brevo/SendGrid/Mailgun."
+            );
+        }
+        return (
+            "SMTP connection failed (timeout/network). Check SMTP_HOST/SMTP_PORT, and note some hosting providers block outbound SMTP; " +
+            "consider using a transactional SMTP provider (Brevo/SendGrid/Mailgun)."
+        );
     }
 
     return "";
@@ -284,10 +293,21 @@ async function sendOtpEmail(toEmail, otp) {
         ? String(process.env.SMTP_SECURE).toLowerCase() === "true"
         : port === 465;
 
+    const connectionTimeout = Number(process.env.SMTP_CONNECTION_TIMEOUT || 15000);
+    const greetingTimeout = Number(process.env.SMTP_GREETING_TIMEOUT || 15000);
+    const socketTimeout = Number(process.env.SMTP_SOCKET_TIMEOUT || 20000);
+
+    // For STARTTLS (587) some providers behave better with requireTLS=true.
+    const requireTLS = String(process.env.SMTP_REQUIRE_TLS || "").toLowerCase() === "true";
+
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port,
         secure,
+        connectionTimeout,
+        greetingTimeout,
+        socketTimeout,
+        ...(requireTLS ? { requireTLS: true } : {}),
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
