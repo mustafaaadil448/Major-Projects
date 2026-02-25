@@ -214,6 +214,37 @@ function validateSmtpConfigForHost() {
     return "";
 }
 
+function explainSessionSaveError(err) {
+    const name = String(err?.name || "");
+    const raw = String(err?.message || err || "");
+
+    if (/Mongo/i.test(name) || /Mongo/i.test(raw) || /connect-mongo/i.test(raw)) {
+        return "Session store error (MongoDB). Check ATLASDB_URL and confirm the database is reachable from this server.";
+    }
+
+    if (/secret/i.test(raw) || /ENOTFOUND/i.test(raw)) {
+        return "Session initialization failed. Check SECRET and ATLASDB_URL configuration.";
+    }
+
+    return "";
+}
+
+function summarizeOtpProviderError(err) {
+    const msg = String(err?.message || "");
+    const name = String(err?.name || "");
+    const code = err?.code ?? err?.status ?? err?.statusCode ?? err?.responseCode;
+
+    let provider = null;
+    if (/msg91/i.test(msg) || /msg91/i.test(name)) provider = "msg91";
+    else if (/twilio/i.test(msg) || /twilio/i.test(name)) provider = "twilio";
+    else if (/smtp|nodemailer|EAUTH|ESOCKET|ETIMEDOUT|ECONN/i.test(msg) || /smtp|nodemailer/i.test(name)) provider = "smtp";
+
+    return {
+        provider,
+        code: code !== undefined && code !== null ? String(code) : null,
+    };
+}
+
 function saveSession(req) {
     return new Promise((resolve, reject) => {
         if (!req?.session || typeof req.session.save !== "function") return resolve();
@@ -543,7 +574,17 @@ app.post("/send-otp", async (req, res) => {
 
         // Ensure OTP is persisted before we reply (avoids race conditions
         // where the very next request can't see req.session.seOtp in prod).
-        await saveSession(req);
+        try {
+            await saveSession(req);
+        } catch (err) {
+            const isProd = process.env.NODE_ENV === "production";
+            const hint = explainSessionSaveError(err);
+            const details = String(err?.message || err || "").trim();
+            const message = isProd
+                ? `Unable to start OTP session.${hint ? " " + hint : ""}`
+                : `Unable to start OTP session. ${hint || details}`.trim();
+            return jsonFail(res, 500, message);
+        }
 
         // Optional real delivery
         const isProd = process.env.NODE_ENV === "production";
@@ -591,15 +632,25 @@ app.post("/send-otp", async (req, res) => {
         }
 
         const showDebugOtp = String(process.env.SHOW_DEBUG_OTP || "").toLowerCase() === "true";
-        const debugOtp = showDebugOtp && process.env.NODE_ENV !== "production" ? otp : undefined;
+        const allowDebugOtp = process.env.NODE_ENV !== "production" && (showDebugOtp || !delivery.sent);
+        const debugOtp = allowDebugOtp ? otp : undefined;
         return jsonOk(res, { target, delivery, ...(debugOtp ? { debugOtp } : {}) });
     } catch (e) {
         const isProd = process.env.NODE_ENV === "production";
         const hint = explainSmtpError(e);
         const details = String(e?.message || e || "").trim();
+        const sessionHint = explainSessionSaveError(e);
+        const providerMeta = summarizeOtpProviderError(e);
+        const metaBits = [
+            providerMeta.provider ? `provider=${providerMeta.provider}` : "",
+            providerMeta.code ? `code=${providerMeta.code}` : "",
+        ].filter(Boolean);
+        const metaSuffix = metaBits.length ? ` (${metaBits.join(", ")})` : "";
+
+        const combinedHint = hint || sessionHint;
         const message = isProd
-            ? `Unable to send OTP.${hint ? " " + hint : ""}`
-            : `Unable to send OTP. ${hint || details}`.trim();
+            ? `Unable to send OTP.${combinedHint ? " " + combinedHint : ""}${metaSuffix}`
+            : `Unable to send OTP. ${combinedHint || details}${metaSuffix}`.trim();
         return jsonFail(res, 500, message);
     }
 });
