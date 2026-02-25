@@ -92,6 +92,15 @@
       email,
     });
 
+    const delivery = data && data.delivery ? data.delivery : null;
+    if (delivery && delivery.sent === false) {
+      const provider = delivery.provider ? String(delivery.provider) : '';
+      const msg = provider
+        ? `OTP delivery failed (provider: ${provider}). Check Render environment variables.`
+        : 'OTP delivery is not configured on the server. Add SMTP/SMS environment variables on Render.';
+      throw new Error(msg);
+    }
+
     const target = data && data.target ? String(data.target) : '';
     showInfo(target ? `OTP sent to ${target}` : 'OTP sent.');
     if (data && data.debugOtp) {

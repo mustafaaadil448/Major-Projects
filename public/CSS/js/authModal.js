@@ -489,6 +489,18 @@
     setPrimaryDisabled(true);
     const payload = getPayload();
     const data = await postJson('/send-otp', payload);
+
+    const delivery = data && data.delivery ? data.delivery : null;
+    if (delivery && delivery.sent === false) {
+      const provider = delivery.provider ? String(delivery.provider) : '';
+      const hint = provider
+        ? `OTP delivery failed (provider: ${provider}). Check Render environment variables.`
+        : 'OTP delivery is not configured on the server. Add SMTP/SMS environment variables on Render.';
+      const err = new Error(hint);
+      err.delivery = delivery;
+      throw err;
+    }
+
     const target = data && data.target ? String(data.target) : '';
     showAlert(target ? `OTP sent to ${target}` : 'OTP sent');
     if (data && data.debugOtp) {
