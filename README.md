@@ -4,7 +4,7 @@ Express + MongoDB + EJS app with authentication, listings, reviews, Cloudinary i
 
 ## Run locally
 
-### 1) Install
+### 1) Install;..
 
 ```bash
 npm install
