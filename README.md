@@ -49,7 +49,7 @@ Then open:
 
 - `http://localhost:8080/`
 
-## Notes
+## Notes..
 
 - Node engine is defined in `package.json`.
 - //completed 
